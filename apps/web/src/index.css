@@ -1030,8 +1030,8 @@ input {
 
 .new-list-card--grid {
   width: 100%;
-  align-self: stretch;
-  min-height: 240px;
+  height: 240px;
+  align-self: start;
 }
 
 .lists-shell .bottom-nav {

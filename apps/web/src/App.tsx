@@ -12,6 +12,7 @@ import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { StyleguidePage } from './pages/StyleguidePage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
       <Route path="/lists/new" element={<CreateListPage />} />
       <Route path="/lists/new/advanced" element={<CreateListAdvancedPage />} />
       <Route path="/lists/birthday" element={<ListDetailsPage />} />
+      <Route path="/dev/styleguide" element={<StyleguidePage />} />
     </Routes>
   );
 }

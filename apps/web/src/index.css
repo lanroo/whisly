@@ -2168,11 +2168,10 @@ input {
 .profile-topbar,
 .empty-lists-topbar,
 .collaborators-topbar {
-  position: fixed;
+  position: sticky;
   top: 0;
-  right: 0;
-  left: 0;
   z-index: 20;
+  padding-top: env(safe-area-inset-top, 0px);
   background: rgba(252, 248, 251, 0.84);
   border-bottom: 1px solid rgba(199, 197, 206, 0.3);
   backdrop-filter: blur(10px);
@@ -3241,4 +3240,22 @@ input {
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+/* ============================================================
+   Configurações (separada do Perfil)
+   ============================================================ */
+
+.top-bar__spacer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.settings-page {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.settings-page .settings-section h2 {
+  margin: 0 0 4px;
 }

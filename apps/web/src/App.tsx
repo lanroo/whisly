@@ -10,6 +10,7 @@ import { ListDetailsPage } from './pages/ListDetailsPage';
 import { ListsPage } from './pages/ListsPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path="/activity" element={<ActivityPage />} />
       <Route path="/explore" element={<ExplorePage />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/configuracoes" element={<SettingsPage />} />
       <Route path="/lists/empty" element={<EmptyListsPage />} />
       <Route path="/collaborators" element={<CollaboratorsPage />} />
       <Route path="/lists" element={<ListsPage />} />

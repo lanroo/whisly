@@ -12,15 +12,6 @@ export function ProfilePage() {
   const toast = useToast();
   const [editing, setEditing] = useState(false);
 
-  function handleLogout() {
-    toast.show({
-      variant: 'success',
-      title: 'Sessão encerrada',
-      description: 'Você saiu da sua conta.',
-    });
-    navigate('/login');
-  }
-
   function comingSoon(feature: string) {
     toast.show({ title: feature, description: 'Em breve disponível.' });
   }
@@ -45,7 +36,7 @@ export function ProfilePage() {
           <button
             aria-label="Configurações"
             className="icon-button"
-            onClick={() => comingSoon('Configurações')}
+            onClick={() => navigate('/configuracoes')}
             type="button"
           >
             <MaterialIcon name="settings" />
@@ -84,26 +75,13 @@ export function ProfilePage() {
         </section>
 
         <section className="settings-section profile-menu">
+          <h2>Atalhos</h2>
           <div className="settings-card">
             <SettingsSelectRow icon="list_alt" title="Minhas listas" to="/lists" />
             <SettingsSelectRow icon="group" title="Colaboradores" to="/collaborators" />
             <SettingsSelectRow icon="notifications" title="Atividade" to="/activity" />
-            <SettingsSelectRow
-              icon="shield"
-              onClick={() => comingSoon('Conta e privacidade')}
-              title="Conta e privacidade"
-            />
-            <SettingsSelectRow
-              icon="help"
-              onClick={() => comingSoon('Ajuda e suporte')}
-              title="Ajuda e suporte"
-            />
           </div>
         </section>
-
-        <Button fullWidth icon="logout" onClick={handleLogout} variant="danger">
-          Sair da conta
-        </Button>
       </main>
 
       <Modal onClose={() => setEditing(false)} open={editing} title="Editar perfil">

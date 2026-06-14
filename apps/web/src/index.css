@@ -3259,3 +3259,80 @@ input {
 .settings-page .settings-section h2 {
   margin: 0 0 4px;
 }
+
+/* ============================================================
+   Auth (login / registro) + estado "seguindo" no Explorar
+   ============================================================ */
+
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.auth-brand__logo {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.auth-brand__name {
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
+
+.field__toggle {
+  position: absolute;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--muted);
+  transition: background 0.15s ease;
+}
+
+.field__toggle .material-symbols-outlined {
+  position: static;
+  font-size: 20px;
+}
+
+.field__toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+.field__control:has(.field__toggle) input {
+  padding-right: 48px;
+}
+
+.link-button {
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.social-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.social-icon {
+  flex-shrink: 0;
+}
+
+.explore-product-card__favorite.is-following {
+  background: var(--accent);
+  color: #fff;
+}

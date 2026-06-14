@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -14,9 +15,28 @@ const topRequestedGifts = getTopRequestedGifts(5);
 
 export function ExplorePage() {
   const toast = useToast();
+  const [followedLists, setFollowedLists] = useState<string[]>([]);
 
   function comingSoon(feature: string) {
     toast.show({ title: feature, description: 'Em breve disponível.' });
+  }
+
+  function toggleFollow(list: { id: string; title: string }) {
+    const isFollowing = followedLists.includes(list.id);
+
+    if (isFollowing) {
+      setFollowedLists((current) => current.filter((id) => id !== list.id));
+      toast.show({ title: 'Você saiu da lista', description: list.title });
+      return;
+    }
+
+    // Lista pública: entra na hora, sem solicitação de aprovação.
+    setFollowedLists((current) => [...current, list.id]);
+    toast.show({
+      variant: 'success',
+      title: 'Você entrou na lista',
+      description: `Agora você acompanha "${list.title}".`,
+    });
   }
 
   return (
@@ -76,18 +96,18 @@ export function ExplorePage() {
                 <div className="explore-product-card__media">
                   <img alt={list.title} src={list.image} />
                   <button
-                    aria-label={`Seguir a lista de ${list.owner}`}
-                    className="explore-product-card__favorite"
-                    onClick={() =>
-                      toast.show({
-                        variant: 'success',
-                        title: 'Solicitação enviada',
-                        description: `Você pediu para seguir "${list.title}".`,
-                      })
+                    aria-label={
+                      followedLists.includes(list.id)
+                        ? `Sair da lista de ${list.owner}`
+                        : `Entrar na lista de ${list.owner}`
                     }
+                    className={`explore-product-card__favorite ${
+                      followedLists.includes(list.id) ? 'is-following' : ''
+                    }`.trim()}
+                    onClick={() => toggleFollow(list)}
                     type="button"
                   >
-                    <MaterialIcon name="group_add" />
+                    <MaterialIcon name={followedLists.includes(list.id) ? 'check' : 'add'} />
                   </button>
                 </div>
                 <div className="explore-product-card__details">

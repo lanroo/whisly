@@ -3,6 +3,7 @@ import type { NavItem } from '../types/ui';
 import { BottomNav } from './BottomNav';
 import { FloatingActionButton } from './FloatingActionButton';
 import { PullToRefresh } from './PullToRefresh';
+import { TopNav } from './TopNav';
 
 interface AppShellProps {
   children: ReactNode;
@@ -39,6 +40,7 @@ export function AppShell({
 
   return (
     <div className={`app-shell ${className}`.trim()}>
+      <TopNav activeKey={activeNavKey} items={navItems} />
       {content}
       {showFab ? (
         <FloatingActionButton icon={fabIcon} label={fabLabel} onClick={fabOnClick} to={fabTo} />

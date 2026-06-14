@@ -831,7 +831,8 @@ input {
 
 .new-list-card {
   width: 256px;
-  align-self: stretch;
+  aspect-ratio: 4 / 5;
+  align-self: start;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;

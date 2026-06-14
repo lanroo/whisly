@@ -2,19 +2,18 @@ import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { Link } from 'react-router-dom';
 import { friendsList, getTopRequestedGifts, giftSuggestions, publicFriendLists } from '../data/mockData';
-
-const navItems = [
-  { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-  { key: 'shared', label: 'Shared', icon: 'group', to: '/activity' },
-  { key: 'explore', label: 'Explore', icon: 'explore', to: '/explore' },
-  { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
-];
+import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 
 const topRequestedGifts = getTopRequestedGifts(5);
 
 export function ExplorePage() {
   return (
-    <AppShell activeNavKey="explore" className="explore-shell" enablePullToRefresh navItems={navItems}>
+    <AppShell
+      activeNavKey="explore"
+      className="explore-shell"
+      enablePullToRefresh
+      navItems={MAIN_NAV_ITEMS}
+    >
       <header className="explore-topbar">
         <div className="explore-topbar__inner">
           <div className="explore-topbar__spacer" />

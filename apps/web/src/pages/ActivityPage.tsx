@@ -2,15 +2,8 @@ import { useMemo, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { activityFeed } from '../data/mockData';
+import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import type { ActivityItem } from '../types/models';
-import type { NavItem } from '../types/ui';
-
-const navItems: NavItem[] = [
-  { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-  { key: 'shared', label: 'Shared', icon: 'group', to: '/activity' },
-  { key: 'explore', label: 'Explore', icon: 'explore', to: '/explore' },
-  { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
-];
 
 interface ActivityRequestCardProps {
   item: ActivityItem;
@@ -142,7 +135,7 @@ export function ActivityPage() {
       enablePullToRefresh
       fabIcon="person_add"
       fabLabel="Adicionar amigo"
-      navItems={navItems}
+      navItems={MAIN_NAV_ITEMS}
     >
       <header className="wishly-home-topbar">
         <div className="wishly-home-topbar__inner">

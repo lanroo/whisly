@@ -2,17 +2,17 @@ import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { Link } from 'react-router-dom';
 import { profileUser } from '../data/mockData';
-
-const navItems = [
-  { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-  { key: 'shared', label: 'Shared', icon: 'group', to: '/activity' },
-  { key: 'explore', label: 'Explore', icon: 'explore', to: '/explore' },
-  { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
-];
+import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 
 export function ProfilePage() {
   return (
-    <AppShell activeNavKey="profile" className="profile-shell" enablePullToRefresh navItems={navItems} showFab={false}>
+    <AppShell
+      activeNavKey="profile"
+      className="profile-shell"
+      enablePullToRefresh
+      navItems={MAIN_NAV_ITEMS}
+      showFab={false}
+    >
       <header className="profile-topbar">
         <div className="profile-topbar__inner">
           <div className="profile-topbar__spacer" />

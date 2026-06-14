@@ -1,0 +1,64 @@
+/**
+ * Design tokens do Whisly.
+ *
+ * Fonte única de verdade para cores, superfícies, sombras, raios e tipografia.
+ * Importado antes de qualquer outro estilo (ver src/index.css).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1&display=swap');
+
+:root {
+  font-family: 'Inter', sans-serif;
+  color: #1b1b1d;
+  background:
+    radial-gradient(circle at top, rgba(124, 58, 237, 0.08), transparent 28%),
+    linear-gradient(180deg, #fcf8fb 0%, #f8f9ff 52%, #fcf8fb 100%);
+
+  /* Superfícies e fundos */
+  --bg: #fcf8fb;
+  --bg-soft: #f8f9ff;
+  --surface: rgba(255, 255, 255, 0.84);
+  --surface-strong: #ffffff;
+  --surface-low: #f6f3f5;
+  --surface-blue: #eff4ff;
+  --surface-blue-strong: #e5eeff;
+
+  /* Linhas / bordas */
+  --line: rgba(119, 118, 126, 0.22);
+  --line-strong: rgba(119, 118, 126, 0.35);
+
+  /* Texto */
+  --text: #1b1b1d;
+  --muted: #5d5e63;
+  --muted-2: #46464d;
+
+  /* Marca */
+  --primary: #242941;
+  --primary-violet: #7c3aed;
+  --primary-violet-strong: #630ed4;
+
+  /* Semânticos */
+  --success: #0b8f63;
+  --warning: #d26a00;
+  --danger: #c93d3d;
+  --danger-bg: rgba(255, 218, 214, 0.92);
+  --success-bg: rgba(16, 185, 129, 0.92);
+  --info-bg: rgba(59, 130, 246, 0.92);
+
+  /* Sombras */
+  --shadow-1: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-2: 0 10px 30px rgba(36, 41, 65, 0.12);
+
+  /* Raios */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  /* Layout */
+  --content-width: 1200px;
+
+  /* Camadas (z-index) — usadas pelos primitivos de UI (toast, modal) */
+  --z-modal: 1000;
+  --z-toast: 1100;
+}

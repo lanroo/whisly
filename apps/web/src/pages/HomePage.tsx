@@ -4,15 +4,9 @@ import { ListCard } from '../components/ListCard';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { NewListCard } from '../components/NewListCard';
 import { homeLists, sharedLists } from '../data/mockData';
+import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 
 export function HomePage() {
-  const navItems = [
-    { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-    { key: 'shared', label: 'Shared', icon: 'group', to: '/activity' },
-    { key: 'explore', label: 'Explore', icon: 'explore', to: '/explore' },
-    { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
-  ];
-
   return (
     <AppShell
       activeNavKey="home"
@@ -20,7 +14,7 @@ export function HomePage() {
       enablePullToRefresh
       fabLabel="Nova lista"
       fabTo="/lists/new"
-      navItems={navItems}
+      navItems={MAIN_NAV_ITEMS}
     >
       <header className="wishly-home-topbar">
         <div className="wishly-home-topbar__inner">

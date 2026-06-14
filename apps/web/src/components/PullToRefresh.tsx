@@ -30,7 +30,9 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
       if (onRefresh) {
         await onRefresh();
       } else {
-        window.location.reload();
+        // Sem handler real ainda: simula o carregamento para exibir o spinner
+        // (efeito padrão de app). Na integração com a API isso vira o refetch.
+        await new Promise((resolve) => setTimeout(resolve, 900));
       }
     } finally {
       setRefreshing(false);
@@ -121,6 +123,13 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
 
       <div
         className={`pull-refresh__content ${startY !== null && !refreshing ? 'is-pulling' : ''}`.trim()}
+        style={{
+          transform: distance ? `translateY(${distance}px)` : undefined,
+          transition:
+            startY !== null && !refreshing
+              ? 'none'
+              : 'transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
       >
         {children}
       </div>

@@ -10,7 +10,22 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
+coverage
 *.local
+
+# Env
+.env
+.env.*
+!.env.example
+
+# PWA / Vite
+**/dev-dist
+.vite
+
+# Prisma / DB
+*.db
+*.db-journal
 
 # Editor directories and files
 .vscode/*

@@ -3,28 +3,17 @@ import { ListCard } from '../components/ListCard';
 import { NewListCard } from '../components/NewListCard';
 import { TopBar } from '../components/TopBar';
 import { userLists } from '../data/mockData';
-
-const navItems = [
-  { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-  { key: 'lists', label: 'Lists', icon: 'list_alt', to: '/lists' },
-  { key: 'activity', label: 'Activity', icon: 'notifications', to: '/activity' },
-  { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
-];
+import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 
 export function ListsPage() {
   return (
-    <AppShell
-      activeNavKey="lists"
-      className="lists-shell"
-      enablePullToRefresh
-      navItems={navItems}
-    >
+    <AppShell activeNavKey="lists" className="lists-shell" enablePullToRefresh navItems={MAIN_NAV_ITEMS}>
       <TopBar backTo="/home" title="WISHLY" />
 
       <main className="page lists-page">
         <section className="lists-page__hero">
           <h2>Minhas Listas</h2>
-          <p>Todas as suas listas em um unico lugar.</p>
+          <p>Todas as suas listas em um único lugar.</p>
         </section>
 
         <section className="lists-grid">

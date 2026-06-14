@@ -3,10 +3,10 @@ import type { NavItem } from '../types/ui';
 import { MaterialIcon } from './MaterialIcon';
 
 const defaultItems: NavItem[] = [
-  { label: 'Home', icon: 'home', to: '/home' },
-  { label: 'Lists', icon: 'list_alt', to: '/lists' },
-  { label: 'Activity', icon: 'notifications', to: '/home' },
-  { label: 'Profile', icon: 'person', to: '/home' },
+  { key: 'home', label: 'Início', icon: 'home', to: '/home' },
+  { key: 'lists', label: 'Listas', icon: 'list_alt', to: '/lists' },
+  { key: 'explore', label: 'Explorar', icon: 'explore', to: '/explore' },
+  { key: 'profile', label: 'Perfil', icon: 'person', to: '/profile' },
 ];
 
 interface BottomNavProps {

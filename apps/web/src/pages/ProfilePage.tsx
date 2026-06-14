@@ -16,7 +16,7 @@ export function ProfilePage() {
       <header className="profile-topbar">
         <div className="profile-topbar__inner">
           <div className="profile-topbar__spacer" />
-          <h1>Profile</h1>
+          <h1>Perfil</h1>
           <Link aria-label="Notificações" className="icon-button" to="/activity">
             <MaterialIcon name="notifications" />
           </Link>

@@ -35,7 +35,7 @@ export function HomePage() {
 
       <main className="page wishly-home-page">
         <section className="wishly-home-welcome">
-          <h1>Ola, Casper</h1>
+          <h1>Olá, Casper</h1>
           <p>O que vamos desejar hoje?</p>
 
           <label className="search-box wishly-home-search">

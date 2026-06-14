@@ -15,9 +15,9 @@ import type {
 export const homeLists: WishlistSummary[] = [
   {
     id: 'birthday',
-    title: 'Aniversario',
+    title: 'Aniversário',
     items: 12,
-    privacy: 'Private',
+    privacy: 'Privada',
     image:
       'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1200&q=80',
   },
@@ -25,7 +25,7 @@ export const homeLists: WishlistSummary[] = [
     id: 'home',
     title: 'Casa Nova',
     items: 24,
-    privacy: 'Private',
+    privacy: 'Privada',
     image:
       'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
   },
@@ -34,9 +34,9 @@ export const homeLists: WishlistSummary[] = [
 export const userLists: WishlistSummary[] = [
   {
     id: 'birthday',
-    title: 'Aniversario',
+    title: 'Aniversário',
     items: 12,
-    privacy: 'Private',
+    privacy: 'Privada',
     updated: 'Atualizada ha 2 dias',
     image:
       'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1200&q=80',
@@ -46,7 +46,7 @@ export const userLists: WishlistSummary[] = [
     id: 'home',
     title: 'Casa Nova',
     items: 24,
-    privacy: 'Private',
+    privacy: 'Privada',
     updated: 'Atualizada ha 1 semana',
     image:
       'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
@@ -56,7 +56,7 @@ export const userLists: WishlistSummary[] = [
     id: 'trip',
     title: 'Viagem dos Sonhos',
     items: 8,
-    visibility: 'Publico',
+    visibility: 'Público',
     updated: 'Atualizada hoje',
     collaborators: [
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80',
@@ -72,8 +72,8 @@ export const userLists: WishlistSummary[] = [
 export const sharedLists: SharedList[] = [
   {
     id: 'baby-shower',
-    title: 'Cha de Bebe da Maria',
-    badge: 'Shared',
+    title: 'Chá de Bebê da Maria',
+    badge: 'Compartilhada',
     image:
       'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=900&q=80',
     collaborators: [
@@ -84,8 +84,8 @@ export const sharedLists: SharedList[] = [
   },
   {
     id: 'vacation',
-    title: 'Viagem de Ferias',
-    badge: 'Shared',
+    title: 'Viagem de Férias',
+    badge: 'Compartilhada',
     image:
       'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80',
     collaborators: [
@@ -99,7 +99,7 @@ export const listProducts: Product[] = [
   {
     id: 'nike',
     brand: 'Nike',
-    title: 'Nike Air Max Nova Geracao',
+    title: 'Nike Air Max Nova Geração',
     price: 'R$ 899,00',
     status: 'urgent',
     image:
@@ -108,7 +108,7 @@ export const listProducts: Product[] = [
   {
     id: 'watch-minimal',
     brand: 'Minimalist Store',
-    title: 'Relogio Minimal White',
+    title: 'Relógio Minimal White',
     price: 'R$ 450,00',
     status: 'bought',
     image:
@@ -126,7 +126,7 @@ export const listProducts: Product[] = [
   {
     id: 'camera-retro',
     brand: 'Amazon',
-    title: 'Camera Analogica Retro',
+    title: 'Câmera Analógica Retro',
     price: 'R$ 680,00',
     status: 'later',
     image:
@@ -157,8 +157,8 @@ export const activityFeed: ActivityItem[] = [
     id: 'request-sarah',
     type: 'request',
     actor: 'Sarah',
-    message: 'sent you a friend request',
-    time: 'Just now',
+    message: 'enviou um pedido de amizade',
+    time: 'Agora mesmo',
     avatar:
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80',
   },
@@ -166,9 +166,9 @@ export const activityFeed: ActivityItem[] = [
     id: 'item-julia',
     type: 'activity',
     actor: 'Julia',
-    message: 'added a new item to',
-    target: 'Birthday Trip',
-    time: '14m ago',
+    message: 'adicionou um item em',
+    target: 'Viagem de Aniversário',
+    time: 'há 14 min',
     avatar:
       'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=240&q=80',
     previewImage:
@@ -178,21 +178,21 @@ export const activityFeed: ActivityItem[] = [
     id: 'reserved-marcos',
     type: 'activity',
     actor: 'Marcos',
-    message: 'reserved a gift in your',
-    target: 'Anniversary list',
-    time: '2h ago',
+    message: 'reservou um presente na sua',
+    target: 'lista de Aniversário',
+    time: 'há 2 h',
     avatar:
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80',
-    privacyLabel: 'Confidential',
+    privacyLabel: 'Confidencial',
   },
   {
     id: 'shared-elena',
     type: 'activity',
     actor: 'Elena',
-    message: 'shared a new list',
-    target: 'Home Decor Inspo',
-    suffix: 'with you',
-    time: '5h ago',
+    message: 'compartilhou uma nova lista',
+    target: 'Inspiração de Decoração',
+    suffix: 'com você',
+    time: 'há 5 h',
     avatar:
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=240&q=80',
     collaborators: [
@@ -203,9 +203,9 @@ export const activityFeed: ActivityItem[] = [
   {
     id: 'system-birthday',
     type: 'system',
-    actor: 'System',
-    message: 'Your Birthday List is trending among your friends!',
-    time: 'Yesterday',
+    actor: 'Sistema',
+    message: 'Sua lista de aniversário está em alta entre seus amigos!',
+    time: 'Ontem',
     icon: 'celebration',
   },
 ];
@@ -221,7 +221,7 @@ export const publicFriendLists: PublicFriendList[] = [
   {
     id: 'birthday-trip',
     owner: 'Julia',
-    title: 'Birthday Trip',
+    title: 'Viagem de Aniversário',
     meta: '12 itens',
     image:
       'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
@@ -229,7 +229,7 @@ export const publicFriendLists: PublicFriendList[] = [
   {
     id: 'home-decor',
     owner: 'Elena',
-    title: 'Home Decor Inspo',
+    title: 'Inspiração de Decoração',
     meta: '24 itens',
     image:
       'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80',
@@ -237,7 +237,7 @@ export const publicFriendLists: PublicFriendList[] = [
   {
     id: 'dream-kitchen',
     owner: 'Marcos',
-    title: 'Dream Kitchen',
+    title: 'Cozinha dos Sonhos',
     meta: '9 itens',
     image:
       'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80',
@@ -432,7 +432,7 @@ export const collaborators: Collaborator[] = [
   {
     id: 'sarah-jenkins',
     name: 'Sarah Jenkins',
-    role: 'Owner',
+    role: 'Dona',
     avatar:
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80',
   },

@@ -55,10 +55,38 @@
   --radius-md: 16px;
   --radius-lg: 24px;
 
+  /* Espaçamento (escala 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Tipografia */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+
   /* Layout */
-  --content-width: 1200px;
+  --content-width: 1120px;
+  --page-padding: 16px;
+  --bottom-nav-height: 64px;
 
   /* Camadas (z-index) — usadas pelos primitivos de UI (toast, modal) */
+  --z-nav: 50;
   --z-modal: 1000;
   --z-toast: 1100;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-padding: 24px;
+  }
 }

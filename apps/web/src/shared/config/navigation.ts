@@ -1,14 +1,15 @@
 import type { NavItem } from '../../types/ui';
 
 /**
- * Navegação principal do app (barra inferior).
+ * Navegação principal do app.
  *
- * Fonte única usada pelas telas que compartilham o mesmo conjunto de abas,
- * eliminando a duplicação que antes existia em cada página.
+ * Conjunto ÚNICO de destinos de topo, usado tanto pela barra inferior (mobile)
+ * quanto pela barra superior (tablet/desktop). A tela de Atividade é acessada
+ * pelo sino de notificações no cabeçalho.
  */
 export const MAIN_NAV_ITEMS: NavItem[] = [
-  { key: 'home', label: 'Home', icon: 'home', to: '/home' },
-  { key: 'shared', label: 'Shared', icon: 'group', to: '/activity' },
-  { key: 'explore', label: 'Explore', icon: 'explore', to: '/explore' },
-  { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
+  { key: 'home', label: 'Início', icon: 'home', to: '/home' },
+  { key: 'lists', label: 'Listas', icon: 'list_alt', to: '/lists' },
+  { key: 'explore', label: 'Explorar', icon: 'explore', to: '/explore' },
+  { key: 'profile', label: 'Perfil', icon: 'person', to: '/profile' },
 ];

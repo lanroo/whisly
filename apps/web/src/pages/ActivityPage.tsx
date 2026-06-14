@@ -30,10 +30,10 @@ function ActivityRequestCard({ item, onDismiss }: ActivityRequestCardProps) {
 
         <div className="activity-request-card__actions">
           <button className="activity-request-card__accept" type="button">
-            Accept
+            Aceitar
           </button>
           <button className="activity-request-card__decline" onClick={onDismiss} type="button">
-            Decline
+            Recusar
           </button>
         </div>
       </div>
@@ -153,7 +153,7 @@ export function ActivityPage() {
             <MaterialIcon name="search" />
             <input
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search activity..."
+              placeholder="Buscar atividade..."
               type="text"
               value={query}
             />
@@ -165,14 +165,14 @@ export function ActivityPage() {
               onClick={() => setActiveTab('all')}
               type="button"
             >
-              All
+              Tudo
             </button>
             <button
               className={activeTab === 'requests' ? 'is-active' : ''}
               onClick={() => setActiveTab('requests')}
               type="button"
             >
-              Requests
+              Solicitações
             </button>
           </div>
         </section>

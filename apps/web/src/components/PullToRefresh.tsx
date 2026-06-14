@@ -1,20 +1,22 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode, type TouchEvent } from 'react';
 import { MaterialIcon } from './MaterialIcon';
 
 const MAX_PULL = 92;
 const TRIGGER_PULL = 60;
 const HOLD_PULL = 52;
 
-export function PullToRefresh({ children, onRefresh }) {
-  const [startY, setStartY] = useState(null);
+interface PullToRefreshProps {
+  children: ReactNode;
+  onRefresh?: () => void | Promise<void>;
+}
+
+export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
+  const [startY, setStartY] = useState<number | null>(null);
   const [distance, setDistance] = useState(0);
   const [ready, setReady] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const progress = useMemo(
-    () => Math.min(1, distance / TRIGGER_PULL),
-    [distance],
-  );
+  const progress = useMemo(() => Math.min(1, distance / TRIGGER_PULL), [distance]);
 
   async function runRefresh() {
     if (refreshing) {
@@ -37,7 +39,7 @@ export function PullToRefresh({ children, onRefresh }) {
     }
   }
 
-  function handleTouchStart(event) {
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
     if (refreshing || window.scrollY > 0 || event.touches.length !== 1) {
       return;
     }
@@ -45,7 +47,7 @@ export function PullToRefresh({ children, onRefresh }) {
     setStartY(event.touches[0].clientY);
   }
 
-  function handleTouchMove(event) {
+  function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
     if (startY === null || refreshing) {
       return;
     }
@@ -108,7 +110,13 @@ export function PullToRefresh({ children, onRefresh }) {
         }}
       >
         <MaterialIcon className={refreshing ? 'pull-refresh__spinner' : ''} name="refresh" />
-        <span>{refreshing ? 'Atualizando...' : ready ? 'Solte para atualizar' : 'Puxe para atualizar'}</span>
+        <span>
+          {refreshing
+            ? 'Atualizando...'
+            : ready
+              ? 'Solte para atualizar'
+              : 'Puxe para atualizar'}
+        </span>
       </div>
 
       <div

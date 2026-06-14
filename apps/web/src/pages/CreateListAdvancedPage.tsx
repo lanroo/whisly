@@ -4,8 +4,16 @@ import { MaterialIcon } from '../components/MaterialIcon';
 import { SettingsSelectRow } from '../components/SettingsSelectRow';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 
+interface AdvancedSettings {
+  allowComments: boolean;
+  notifyNewItems: boolean;
+  showPriority: boolean;
+  friendsInviteOthers: boolean;
+  requireApproval: boolean;
+}
+
 export function CreateListAdvancedPage() {
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<AdvancedSettings>({
     allowComments: true,
     notifyNewItems: false,
     showPriority: true,
@@ -13,7 +21,7 @@ export function CreateListAdvancedPage() {
     requireApproval: true,
   });
 
-  function toggleSetting(key) {
+  function toggleSetting(key: keyof AdvancedSettings) {
     setSettings((current) => ({
       ...current,
       [key]: !current[key],

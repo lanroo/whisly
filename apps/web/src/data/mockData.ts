@@ -1,4 +1,18 @@
-export const homeLists = [
+import type {
+  ActivityItem,
+  Collaborator,
+  ExploreCategory,
+  Friend,
+  GiftSuggestion,
+  Product,
+  ProfileUser,
+  PublicFriendList,
+  RankedGift,
+  SharedList,
+  WishlistSummary,
+} from '../types/models';
+
+export const homeLists: WishlistSummary[] = [
   {
     id: 'birthday',
     title: 'Aniversario',
@@ -17,7 +31,7 @@ export const homeLists = [
   },
 ];
 
-export const userLists = [
+export const userLists: WishlistSummary[] = [
   {
     id: 'birthday',
     title: 'Aniversario',
@@ -55,7 +69,7 @@ export const userLists = [
   },
 ];
 
-export const sharedLists = [
+export const sharedLists: SharedList[] = [
   {
     id: 'baby-shower',
     title: 'Cha de Bebe da Maria',
@@ -81,7 +95,7 @@ export const sharedLists = [
   },
 ];
 
-export const listProducts = [
+export const listProducts: Product[] = [
   {
     id: 'nike',
     brand: 'Nike',
@@ -138,7 +152,7 @@ export const listProducts = [
   },
 ];
 
-export const activityFeed = [
+export const activityFeed: ActivityItem[] = [
   {
     id: 'request-sarah',
     type: 'request',
@@ -196,14 +210,14 @@ export const activityFeed = [
   },
 ];
 
-export const exploreCategories = [
+export const exploreCategories: ExploreCategory[] = [
   { id: 'fashion', label: 'Fashion', icon: 'checkroom' },
   { id: 'tech', label: 'Tech', icon: 'devices' },
   { id: 'home', label: 'Home', icon: 'chair' },
   { id: 'art', label: 'Art', icon: 'palette' },
 ];
 
-export const publicFriendLists = [
+export const publicFriendLists: PublicFriendList[] = [
   {
     id: 'birthday-trip',
     owner: 'Julia',
@@ -230,7 +244,7 @@ export const publicFriendLists = [
   },
 ];
 
-export const friendsList = [
+export const friendsList: Friend[] = [
   {
     id: 'elena',
     name: 'Elena M.',
@@ -289,7 +303,7 @@ export const friendsList = [
   },
 ];
 
-export const giftSuggestions = [
+export const giftSuggestions: GiftSuggestion[] = [
   {
     id: 'kindle-paperwhite',
     name: 'Kindle Paperwhite',
@@ -387,31 +401,34 @@ const giftDemandEntries = [
   },
 ];
 
-export function getTopRequestedGifts(limit = 5) {
+interface GiftDemand {
+  count: number;
+  lists: Set<string>;
+}
+
+export function getTopRequestedGifts(limit = 5): RankedGift[] {
   const productMap = new Map(giftSuggestions.map((gift) => [gift.id, gift]));
-  const rankingMap = giftDemandEntries.reduce((accumulator, entry) => {
-    const current = accumulator.get(entry.productId) ?? { count: 0, lists: new Set() };
+  const rankingMap = new Map<string, GiftDemand>();
+
+  for (const entry of giftDemandEntries) {
+    const current = rankingMap.get(entry.productId) ?? { count: 0, lists: new Set<string>() };
     current.count += 1;
     current.lists.add(entry.listId);
-    accumulator.set(entry.productId, current);
-    return accumulator;
-  }, new Map());
+    rankingMap.set(entry.productId, current);
+  }
 
   return [...rankingMap.entries()]
-    .map(([productId, stats]) => {
+    .map(([productId, stats]): RankedGift | null => {
       const product = productMap.get(productId);
-      return {
-        ...product,
-        requests: stats.count,
-        listCount: stats.lists.size,
-      };
+      if (!product) return null;
+      return { ...product, requests: stats.count, listCount: stats.lists.size };
     })
-    .filter(Boolean)
+    .filter((gift): gift is RankedGift => gift !== null)
     .sort((first, second) => second.requests - first.requests || second.listCount - first.listCount)
     .slice(0, limit);
 }
 
-export const collaborators = [
+export const collaborators: Collaborator[] = [
   {
     id: 'sarah-jenkins',
     name: 'Sarah Jenkins',
@@ -434,7 +451,7 @@ export const collaborators = [
   },
 ];
 
-export const profileUser = {
+export const profileUser: ProfileUser = {
   name: 'Casper Moretti',
   handle: '@casperwish',
   bio: 'Organizando desejos, viagens e listas compartilhadas com quem eu gosto.',

@@ -13,7 +13,7 @@ const filters = [
 
 export function ListDetailsPage() {
   const [activeFilter, setActiveFilter] = useState('all');
-  const [view, setView] = useState('list');
+  const [view, setView] = useState<'grid' | 'list'>('list');
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === 'all') return listProducts;

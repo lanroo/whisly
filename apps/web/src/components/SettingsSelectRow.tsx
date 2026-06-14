@@ -1,6 +1,11 @@
 import { MaterialIcon } from './MaterialIcon';
 
-export function SettingsSelectRow({ title, value }) {
+interface SettingsSelectRowProps {
+  title: string;
+  value: string;
+}
+
+export function SettingsSelectRow({ title, value }: SettingsSelectRowProps) {
   return (
     <button className="settings-row settings-row--select" type="button">
       <strong>{title}</strong>

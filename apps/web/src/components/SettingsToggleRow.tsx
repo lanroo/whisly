@@ -1,4 +1,16 @@
-export function SettingsToggleRow({ checked, description, onChange, title }) {
+interface SettingsToggleRowProps {
+  checked: boolean;
+  description?: string;
+  onChange: () => void;
+  title: string;
+}
+
+export function SettingsToggleRow({
+  checked,
+  description,
+  onChange,
+  title,
+}: SettingsToggleRowProps) {
   return (
     <div className="settings-row settings-row--toggle">
       <div className="settings-row__copy">

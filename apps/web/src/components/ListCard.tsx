@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom';
+import type { WishlistSummary } from '../types/models';
 import { MaterialIcon } from './MaterialIcon';
 
-export function ListCard({ list, variant = 'home' }) {
+interface ListCardProps {
+  list: WishlistSummary;
+  variant?: 'home' | 'lists';
+}
+
+export function ListCard({ list, variant = 'home' }: ListCardProps) {
   const content = (
     <>
       <div className="list-card__media">
@@ -31,10 +37,7 @@ export function ListCard({ list, variant = 'home' }) {
   );
 
   return (
-    <Link
-      className={`list-card list-card--${variant}`}
-      to={list.to ?? `/lists/${list.id}`}
-    >
+    <Link className={`list-card list-card--${variant}`} to={list.to ?? `/lists/${list.id}`}>
       {content}
     </Link>
   );

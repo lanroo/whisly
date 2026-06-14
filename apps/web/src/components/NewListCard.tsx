@@ -1,6 +1,10 @@
 import { MaterialIcon } from './MaterialIcon';
 
-export function NewListCard({ className = '' }) {
+interface NewListCardProps {
+  className?: string;
+}
+
+export function NewListCard({ className = '' }: NewListCardProps) {
   return (
     <button className={`new-list-card ${className}`.trim()} type="button">
       <span className="new-list-card__icon-wrap">

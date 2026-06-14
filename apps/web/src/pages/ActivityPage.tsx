@@ -2,15 +2,22 @@ import { useMemo, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { activityFeed } from '../data/mockData';
+import type { ActivityItem } from '../types/models';
+import type { NavItem } from '../types/ui';
 
-const navItems = [
+const navItems: NavItem[] = [
   { key: 'home', label: 'Home', icon: 'home', to: '/home' },
   { key: 'shared', label: 'Shared', icon: 'group', to: '/activity' },
   { key: 'explore', label: 'Explore', icon: 'explore', to: '/explore' },
   { key: 'profile', label: 'Profile', icon: 'person', to: '/profile' },
 ];
 
-function ActivityRequestCard({ item, onDismiss }) {
+interface ActivityRequestCardProps {
+  item: ActivityItem;
+  onDismiss: () => void;
+}
+
+function ActivityRequestCard({ item, onDismiss }: ActivityRequestCardProps) {
   return (
     <article className="activity-request-card">
       <div className="activity-avatar activity-avatar--request">
@@ -41,12 +48,12 @@ function ActivityRequestCard({ item, onDismiss }) {
   );
 }
 
-function ActivityListItem({ item }) {
+function ActivityListItem({ item }: { item: ActivityItem }) {
   return (
     <article className="activity-list-item">
       {item.type === 'system' ? (
         <div className="activity-avatar activity-avatar--system">
-          <MaterialIcon name={item.icon} />
+          <MaterialIcon name={item.icon ?? 'celebration'} />
         </div>
       ) : (
         <div className="activity-avatar">
@@ -97,7 +104,7 @@ function ActivityListItem({ item }) {
 export function ActivityPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [query, setQuery] = useState('');
-  const [dismissedRequests, setDismissedRequests] = useState([]);
+  const [dismissedRequests, setDismissedRequests] = useState<string[]>([]);
 
   const visibleFeed = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -124,7 +131,7 @@ export function ActivityPage() {
     });
   }, [activeTab, dismissedRequests, query]);
 
-  function dismissRequest(id) {
+  function dismissRequest(id: string) {
     setDismissedRequests((current) => [...current, id]);
   }
 

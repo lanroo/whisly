@@ -1,6 +1,11 @@
 import { MaterialIcon } from './MaterialIcon';
 
-export function CreateListPrivacyCard({ isPublic, onToggle }) {
+interface CreateListPrivacyCardProps {
+  isPublic: boolean;
+  onToggle: () => void;
+}
+
+export function CreateListPrivacyCard({ isPublic, onToggle }: CreateListPrivacyCardProps) {
   return (
     <div className="create-list-privacy-card">
       <div className="create-list-privacy-card__icon">

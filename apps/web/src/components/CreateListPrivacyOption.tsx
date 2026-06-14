@@ -1,5 +1,15 @@
 import { MaterialIcon } from './MaterialIcon';
 
+interface CreateListPrivacyOptionProps {
+  checked: boolean;
+  description: string;
+  icon: string;
+  name: string;
+  onChange: (value: string) => void;
+  title: string;
+  value: string;
+}
+
 export function CreateListPrivacyOption({
   checked,
   description,
@@ -8,7 +18,7 @@ export function CreateListPrivacyOption({
   onChange,
   title,
   value,
-}) {
+}: CreateListPrivacyOptionProps) {
   return (
     <div className="create-list-privacy-option">
       <input

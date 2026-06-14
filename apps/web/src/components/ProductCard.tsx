@@ -1,11 +1,18 @@
-const badgeMap = {
+import type { Product, ProductStatus } from '../types/models';
+
+const badgeMap: Record<ProductStatus, { label: string; className: string }> = {
   urgent: { label: 'Urgente', className: 'badge badge--urgent' },
   desired: { label: 'Desejado', className: 'badge badge--desired' },
   later: { label: 'Pode esperar', className: 'badge badge--later' },
   bought: { label: 'Comprado', className: 'badge badge--bought' },
 };
 
-export function ProductCard({ product, view = 'grid' }) {
+interface ProductCardProps {
+  product: Product;
+  view?: 'grid' | 'list';
+}
+
+export function ProductCard({ product, view = 'grid' }: ProductCardProps) {
   const badge = badgeMap[product.status];
   const bought = product.status === 'bought';
 

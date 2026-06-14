@@ -1,7 +1,19 @@
 import { Link } from 'react-router-dom';
 import { MaterialIcon } from './MaterialIcon';
 
-export function CreateFlowHeader({ backTo, title, rightIcon, rightLabel }) {
+interface CreateFlowHeaderProps {
+  backTo: string;
+  title: string;
+  rightIcon?: string;
+  rightLabel?: string;
+}
+
+export function CreateFlowHeader({
+  backTo,
+  title,
+  rightIcon,
+  rightLabel,
+}: CreateFlowHeaderProps) {
   return (
     <header className="create-flow-header">
       <div className="create-flow-header__inner">
@@ -12,7 +24,11 @@ export function CreateFlowHeader({ backTo, title, rightIcon, rightLabel }) {
         <h1>{title}</h1>
 
         {rightIcon ? (
-          <button aria-label={rightLabel ?? 'Ação'} className="create-flow-header__button" type="button">
+          <button
+            aria-label={rightLabel ?? 'Ação'}
+            className="create-flow-header__button"
+            type="button"
+          >
             <MaterialIcon name={rightIcon} />
           </button>
         ) : (

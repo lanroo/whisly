@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { CreateFlowHeader } from '../components/CreateFlowHeader';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -30,7 +30,7 @@ export function CreateListPage() {
   const [listName, setListName] = useState('');
   const [privacy, setPrivacy] = useState('private');
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     navigate('/lists');
   }

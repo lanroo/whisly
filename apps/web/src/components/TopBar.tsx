@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom';
 import { MaterialIcon } from './MaterialIcon';
 
-export function TopBar({ backTo, title, rightIcon = 'search' }) {
+interface TopBarProps {
+  backTo: string;
+  title: string;
+  rightIcon?: string;
+}
+
+export function TopBar({ backTo, title, rightIcon = 'search' }: TopBarProps) {
   return (
     <header className="top-bar glass-panel">
       <div className="top-bar__inner">

@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { PasswordField } from '../components/PasswordField';
 import { SettingsSelectRow } from '../components/SettingsSelectRow';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { TopBar } from '../components/TopBar';
+import { useAuth } from '../shared/auth';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { Button, useToast } from '../shared/ui';
+import { Button, Modal, useToast } from '../shared/ui';
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { signOut, updatePassword } = useAuth();
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   function comingSoon(feature: string) {
     toast.show({ title: feature, description: 'Em breve disponível.' });
@@ -24,9 +29,37 @@ export function SettingsPage() {
     });
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    await signOut();
     toast.show({ variant: 'success', title: 'Sessão encerrada' });
     navigate('/login');
+  }
+
+  async function handleChangePassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get('new-password') ?? '');
+    const confirm = String(form.get('confirm-password') ?? '');
+
+    if (password.length < 6) {
+      toast.show({ variant: 'error', title: 'A senha deve ter ao menos 6 caracteres' });
+      return;
+    }
+    if (password !== confirm) {
+      toast.show({ variant: 'error', title: 'As senhas não coincidem' });
+      return;
+    }
+
+    setSavingPassword(true);
+    const { error } = await updatePassword(password);
+    setSavingPassword(false);
+
+    if (error) {
+      toast.show({ variant: 'error', title: 'Erro ao alterar senha', description: error });
+      return;
+    }
+    setChangingPassword(false);
+    toast.show({ variant: 'success', title: 'Senha alterada' });
   }
 
   return (
@@ -44,8 +77,8 @@ export function SettingsPage() {
             />
             <SettingsSelectRow
               icon="lock"
-              onClick={() => comingSoon('Segurança')}
-              title="Segurança"
+              onClick={() => setChangingPassword(true)}
+              title="Alterar senha"
             />
           </div>
         </section>
@@ -100,6 +133,21 @@ export function SettingsPage() {
           Sair da conta
         </Button>
       </main>
+
+      <Modal onClose={() => setChangingPassword(false)} open={changingPassword} title="Alterar senha">
+        <form className="profile-edit-form" onSubmit={handleChangePassword}>
+          <PasswordField autoComplete="new-password" label="Nova senha" name="new-password" />
+          <PasswordField autoComplete="new-password" label="Confirmar nova senha" name="confirm-password" />
+          <div className="profile-edit-actions">
+            <Button onClick={() => setChangingPassword(false)} variant="ghost">
+              Cancelar
+            </Button>
+            <Button disabled={savingPassword} type="submit">
+              {savingPassword ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </AppShell>
   );
 }

@@ -31,21 +31,22 @@ function AppleIcon() {
 
 interface AuthSocialButtonsProps {
   label: string;
+  onSelect?: (provider: 'google' | 'apple') => void;
 }
 
 /** Divisor + botões de login social (Apple/Google) — compartilhado por login e registro. */
-export function AuthSocialButtons({ label }: AuthSocialButtonsProps) {
+export function AuthSocialButtons({ label, onSelect }: AuthSocialButtonsProps) {
   return (
     <>
       <div className="separator">
         <span>{label}</span>
       </div>
       <div className="social-actions">
-        <button className="secondary-button" type="button">
+        <button className="secondary-button" onClick={() => onSelect?.('apple')} type="button">
           <AppleIcon />
           <span>Apple</span>
         </button>
-        <button className="secondary-button" type="button">
+        <button className="secondary-button" onClick={() => onSelect?.('google')} type="button">
           <GoogleIcon />
           <span>Google</span>
         </button>

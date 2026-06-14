@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { AuthProvider } from '@/shared/auth';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { ToastProvider } from '@/shared/ui/toast';
 
@@ -15,7 +16,9 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ErrorBoundary>
-      <ToastProvider>{children}</ToastProvider>
+      <AuthProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

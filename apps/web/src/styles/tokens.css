@@ -38,6 +38,16 @@
   --primary-violet: #7c3aed;
   --primary-violet-strong: #630ed4;
 
+  /* Accent de ação — cor única para botões, FAB, links e estados ativos.
+     É o "azul" (navy) do tema; substitui o roxo que destoava. */
+  --accent: #242941;
+  --accent-strong: #161a2e;
+  --accent-contrast: #ffffff;
+  --accent-soft: var(--surface-blue-strong);
+  --accent-soft-text: #242941;
+  --accent-gradient: linear-gradient(180deg, #2f3551 0%, #242941 100%);
+  --accent-shadow: 0 12px 24px rgba(36, 41, 65, 0.2);
+
   /* Semânticos */
   --success: #0b8f63;
   --warning: #d26a00;

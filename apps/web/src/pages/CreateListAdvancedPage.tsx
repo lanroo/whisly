@@ -1,8 +1,18 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CreateFlowHeader } from '../components/CreateFlowHeader';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { SettingsSelectRow } from '../components/SettingsSelectRow';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
+import { useToast } from '../shared/ui';
+
+const DEFAULT_SETTINGS: AdvancedSettings = {
+  allowComments: true,
+  notifyNewItems: false,
+  showPriority: true,
+  friendsInviteOthers: false,
+  requireApproval: true,
+};
 
 interface AdvancedSettings {
   allowComments: boolean;
@@ -13,19 +23,25 @@ interface AdvancedSettings {
 }
 
 export function CreateListAdvancedPage() {
-  const [settings, setSettings] = useState<AdvancedSettings>({
-    allowComments: true,
-    notifyNewItems: false,
-    showPriority: true,
-    friendsInviteOthers: false,
-    requireApproval: true,
-  });
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [settings, setSettings] = useState<AdvancedSettings>(DEFAULT_SETTINGS);
 
   function toggleSetting(key: keyof AdvancedSettings) {
     setSettings((current) => ({
       ...current,
       [key]: !current[key],
     }));
+  }
+
+  function resetSettings() {
+    setSettings(DEFAULT_SETTINGS);
+    toast.show({ title: 'Configurações redefinidas' });
+  }
+
+  function handleSave() {
+    toast.show({ variant: 'success', title: 'Configurações salvas' });
+    navigate('/lists/new');
   }
 
   return (
@@ -90,7 +106,7 @@ export function CreateListAdvancedPage() {
         </section>
 
         <section className="settings-section settings-section--danger">
-          <button className="settings-reset" type="button">
+          <button className="settings-reset" onClick={resetSettings} type="button">
             <span>Redefinir todas as configurações</span>
             <MaterialIcon name="refresh" />
           </button>
@@ -103,7 +119,11 @@ export function CreateListAdvancedPage() {
 
       <div className="create-flow-footer">
         <div className="create-flow-footer__inner">
-          <button className="primary-button primary-button--full create-flow-submit" type="button">
+          <button
+            className="primary-button primary-button--full create-flow-submit"
+            onClick={handleSave}
+            type="button"
+          >
             Salvar Alterações
           </button>
         </div>

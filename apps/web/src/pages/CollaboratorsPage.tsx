@@ -1,10 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { collaborators } from '../data/mockData';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
+import { Button, useToast } from '../shared/ui';
 
 export function CollaboratorsPage() {
+  const navigate = useNavigate();
+  const toast = useToast();
+
   return (
     <AppShell
       activeNavKey="lists"
@@ -31,7 +35,17 @@ export function CollaboratorsPage() {
           <input placeholder="Convidar amigos..." type="text" />
         </label>
 
-        <button className="collaborators-page__add" type="button">
+        <button
+          className="collaborators-page__add"
+          onClick={() =>
+            toast.show({
+              variant: 'success',
+              title: 'Convite enviado',
+              description: 'O convite de colaboração foi enviado.',
+            })
+          }
+          type="button"
+        >
           <MaterialIcon name="person_add" />
           <span>Adicionar colaborador</span>
         </button>
@@ -55,6 +69,7 @@ export function CollaboratorsPage() {
               <button
                 aria-label={`Mais opções para ${collaborator.name}`}
                 className="icon-button collaborator-row__more"
+                onClick={() => toast.show({ title: collaborator.name, description: 'Opções em breve.' })}
                 type="button"
               >
                 <MaterialIcon name="more_horiz" />
@@ -63,9 +78,17 @@ export function CollaboratorsPage() {
           ))}
         </section>
 
-        <button className="collaborators-page__leave" type="button">
+        <Button
+          className="collaborators-page__leave"
+          fullWidth
+          onClick={() => {
+            toast.show({ variant: 'warning', title: 'Você saiu da lista' });
+            navigate('/lists');
+          }}
+          variant="danger"
+        >
           Sair da lista
-        </button>
+        </Button>
       </main>
     </AppShell>
   );

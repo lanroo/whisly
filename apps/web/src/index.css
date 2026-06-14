@@ -142,7 +142,7 @@ input {
 .field__meta a,
 .auth-card__footer a,
 .section-heading a {
-  color: var(--primary-violet-strong);
+  color: var(--accent);
 }
 
 .field__control,
@@ -161,7 +161,7 @@ input {
 
 .field__control:focus-within,
 .search-box:focus-within {
-  border-color: rgba(99, 14, 212, 0.38);
+  border-color: rgba(36, 41, 65, 0.32);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
 
@@ -553,7 +553,7 @@ input {
   display: grid;
   place-content: center;
   gap: 10px;
-  color: var(--primary-violet-strong);
+  color: var(--accent);
   background: rgba(239, 244, 255, 0.78);
   border-style: dashed;
 }
@@ -629,8 +629,8 @@ input {
   justify-content: center;
   color: #fff;
   border-radius: 999px;
-  background: linear-gradient(180deg, #7c3aed 0%, #630ed4 100%);
-  box-shadow: 0 12px 30px rgba(99, 14, 212, 0.28);
+  background: var(--accent-gradient);
+  box-shadow: 0 12px 30px rgba(36, 41, 65, 0.22);
 }
 
 .bottom-nav {
@@ -661,7 +661,7 @@ input {
 }
 
 .bottom-nav__item.is-active {
-  color: var(--primary-violet-strong);
+  color: var(--accent);
 }
 
 .wishly-home-topbar {
@@ -1281,7 +1281,7 @@ input {
 .link-card span {
   display: block;
   margin-bottom: 2px;
-  color: rgba(99, 14, 212, 0.62);
+  color: rgba(36, 41, 65, 0.62);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -1392,7 +1392,7 @@ input {
 
 .product-card__brand {
   margin: 0;
-  color: var(--primary-violet-strong);
+  color: var(--accent);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -1703,7 +1703,7 @@ input {
 }
 
 .create-list-input__control:focus-within {
-  border-color: rgba(99, 14, 212, 0.38);
+  border-color: rgba(36, 41, 65, 0.32);
   box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
 
@@ -2682,9 +2682,9 @@ input {
   justify-content: center;
   gap: 8px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #7c3aed 0%, #630ed4 100%);
+  background: var(--accent-gradient);
   color: #ffffff;
-  box-shadow: 0 12px 24px rgba(99, 14, 212, 0.2);
+  box-shadow: 0 12px 24px rgba(36, 41, 65, 0.2);
   font-size: 13px;
   font-weight: 600;
   line-height: 18px;
@@ -3096,7 +3096,7 @@ input {
     border-radius: 10px;
     display: grid;
     place-items: center;
-    background: var(--primary-violet);
+    background: var(--accent);
     color: #fff;
     font-weight: 700;
     letter-spacing: 0;
@@ -3134,7 +3134,7 @@ input {
 
   .app-top-nav__link.is-active {
     background: var(--surface-blue-strong);
-    color: var(--primary-violet-strong);
+    color: var(--accent);
   }
 
   .app-top-nav__bell {
@@ -3163,4 +3163,80 @@ input {
   .wishly-shared-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* ============================================================
+   Perfil funcional + linhas de menu (FE-C)
+   ============================================================ */
+
+.settings-row--with-icon {
+  grid-template-columns: auto 1fr auto;
+}
+
+.settings-row__lead {
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.settings-row--select {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settings-row--select:hover {
+  background: var(--surface-low);
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  margin-top: var(--space-5);
+}
+
+.profile-menu {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.profile-edit-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.profile-edit-field {
+  display: grid;
+  gap: 6px;
+}
+
+.profile-edit-field span {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+.profile-edit-field input,
+.profile-edit-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+.profile-edit-field input:focus,
+.profile-edit-field textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.profile-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }

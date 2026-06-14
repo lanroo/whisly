@@ -3,14 +3,16 @@ import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { activityFeed } from '../data/mockData';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
+import { useToast } from '../shared/ui';
 import type { ActivityItem } from '../types/models';
 
 interface ActivityRequestCardProps {
   item: ActivityItem;
+  onAccept: () => void;
   onDismiss: () => void;
 }
 
-function ActivityRequestCard({ item, onDismiss }: ActivityRequestCardProps) {
+function ActivityRequestCard({ item, onAccept, onDismiss }: ActivityRequestCardProps) {
   return (
     <article className="activity-request-card">
       <div className="activity-avatar activity-avatar--request">
@@ -29,7 +31,7 @@ function ActivityRequestCard({ item, onDismiss }: ActivityRequestCardProps) {
         </div>
 
         <div className="activity-request-card__actions">
-          <button className="activity-request-card__accept" type="button">
+          <button className="activity-request-card__accept" onClick={onAccept} type="button">
             Aceitar
           </button>
           <button className="activity-request-card__decline" onClick={onDismiss} type="button">
@@ -95,6 +97,7 @@ function ActivityListItem({ item }: { item: ActivityItem }) {
 }
 
 export function ActivityPage() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('all');
   const [query, setQuery] = useState('');
   const [dismissedRequests, setDismissedRequests] = useState<string[]>([]);
@@ -126,6 +129,15 @@ export function ActivityPage() {
 
   function dismissRequest(id: string) {
     setDismissedRequests((current) => [...current, id]);
+  }
+
+  function acceptRequest(item: ActivityItem) {
+    toast.show({
+      variant: 'success',
+      title: 'Pedido aceito',
+      description: `Agora você e ${item.actor} são amigos.`,
+    });
+    dismissRequest(item.id);
   }
 
   return (
@@ -180,7 +192,12 @@ export function ActivityPage() {
         <section className="activity-feed">
           {visibleFeed.map((item) =>
             item.type === 'request' ? (
-              <ActivityRequestCard key={item.id} item={item} onDismiss={() => dismissRequest(item.id)} />
+              <ActivityRequestCard
+                key={item.id}
+                item={item}
+                onAccept={() => acceptRequest(item)}
+                onDismiss={() => dismissRequest(item.id)}
+              />
             ) : (
               <ActivityListItem key={item.id} item={item} />
             ),

@@ -9,7 +9,7 @@ import { useToast } from '../shared/ui';
 export function RegisterPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signUp, signInWithOAuth, isConfigured } = useAuth();
+  const { signUp, signInWithOAuth } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -26,7 +26,7 @@ export function RegisterPage() {
     }
 
     setSubmitting(true);
-    const { error } = await signUp({ email, password, name });
+    const { error, needsConfirmation } = await signUp({ email, password, name });
     setSubmitting(false);
 
     if (error) {
@@ -34,11 +34,11 @@ export function RegisterPage() {
       return;
     }
 
-    if (isConfigured) {
+    if (needsConfirmation) {
       toast.show({
-        variant: 'success',
-        title: 'Conta criada',
-        description: 'Confirme seu e-mail para ativar a conta.',
+        variant: 'info',
+        title: 'Confirme seu e-mail',
+        description: 'Enviamos um link de confirmação para a sua caixa de entrada.',
       });
       navigate('/login');
       return;

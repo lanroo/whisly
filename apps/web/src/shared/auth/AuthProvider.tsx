@@ -38,13 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signUp = useCallback(async ({ email, password, name }: SignUpParams): Promise<AuthResult> => {
-    if (!supabase) return { error: null };
-    const { error } = await supabase.auth.signUp({
+    if (!supabase) return { error: null, needsConfirmation: false };
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name } },
     });
-    return { error: error?.message ?? null };
+    return {
+      error: error?.message ?? null,
+      needsConfirmation: !error && !data.session,
+    };
   }, []);
 
   const signInWithOAuth = useCallback(async (provider: OAuthProvider): Promise<AuthResult> => {

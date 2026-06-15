@@ -5,6 +5,8 @@ export type OAuthProvider = 'google' | 'apple';
 
 export interface AuthResult {
   error: string | null;
+  /** No cadastro: true quando o e-mail ainda precisa ser confirmado (sem sessão). */
+  needsConfirmation?: boolean;
 }
 
 export interface SignUpParams {

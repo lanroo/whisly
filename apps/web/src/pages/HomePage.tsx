@@ -3,10 +3,19 @@ import { AppShell } from '../components/AppShell';
 import { ListCard } from '../components/ListCard';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { NewListCard } from '../components/NewListCard';
-import { homeLists, sharedLists } from '../data/mockData';
+import { sharedLists } from '../data/mockData';
+import { useMyLists } from '../features/lists/api';
+import { useAuth } from '../shared/auth';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
+import { Avatar, Skeleton } from '../shared/ui';
 
 export function HomePage() {
+  const { user } = useAuth();
+  const { data: lists, isLoading } = useMyLists();
+  const firstName =
+    (user?.user_metadata?.name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
+  const myLists = (lists ?? []).slice(0, 6);
+
   return (
     <AppShell
       activeNavKey="home"
@@ -19,12 +28,7 @@ export function HomePage() {
       <header className="wishly-home-topbar">
         <div className="wishly-home-topbar__inner">
           <div className="wishly-home-topbar__brand">
-            <div className="avatar avatar--sm">
-              <img
-                alt="Casper"
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80"
-              />
-            </div>
+            <Avatar name={firstName} size="sm" />
             <span>WISHLY</span>
           </div>
           <Link aria-label="Notificações" className="icon-button" to="/activity">
@@ -35,7 +39,7 @@ export function HomePage() {
 
       <main className="page wishly-home-page">
         <section className="wishly-home-welcome">
-          <h1>Olá, Casper</h1>
+          <h1>{firstName ? `Olá, ${firstName}` : 'Olá'}</h1>
           <p>O que vamos desejar hoje?</p>
 
           <label className="search-box wishly-home-search">
@@ -53,9 +57,9 @@ export function HomePage() {
           </div>
 
           <div className="wishly-home-list-row">
-            {homeLists.map((list) => (
-              <ListCard key={list.id} list={list} variant="home" />
-            ))}
+            {isLoading
+              ? ['a', 'b'].map((key) => <Skeleton key={key} height={320} width={256} />)
+              : myLists.map((list) => <ListCard key={list.id} list={list} variant="home" />)}
 
             <NewListCard />
           </div>

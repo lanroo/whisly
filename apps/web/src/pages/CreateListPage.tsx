@@ -3,6 +3,8 @@ import { useState, type FormEvent } from 'react';
 import { CreateFlowHeader } from '../components/CreateFlowHeader';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
+import { useCreateList, type ListPrivacy } from '../features/lists/api';
+import { useToast } from '../shared/ui';
 
 const privacyOptions = [
   {
@@ -27,12 +29,30 @@ const privacyOptions = [
 
 export function CreateListPage() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const createList = useCreateList();
   const [listName, setListName] = useState('');
-  const [privacy, setPrivacy] = useState('private');
+  const [privacy, setPrivacy] = useState<ListPrivacy>('private');
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    navigate('/lists');
+    const title = listName.trim();
+    if (!title) {
+      toast.show({ title: 'Dê um nome à lista' });
+      return;
+    }
+
+    try {
+      const listId = await createList.mutateAsync({ title, privacy });
+      toast.show({ variant: 'success', title: 'Lista criada' });
+      navigate(`/lists/${listId}`);
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível criar a lista',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   return (
@@ -90,7 +110,7 @@ export function CreateListPage() {
                   icon={option.icon}
                   key={option.value}
                   name="privacy"
-                  onChange={setPrivacy}
+                  onChange={(value) => setPrivacy(value as ListPrivacy)}
                   title={option.title}
                   value={option.value}
                 />
@@ -111,10 +131,11 @@ export function CreateListPage() {
         <div className="create-flow-footer__inner">
           <button
             className="primary-button primary-button--full create-flow-submit"
+            disabled={createList.isPending}
             form="create-list-form"
             type="submit"
           >
-            Criar Lista
+            {createList.isPending ? 'Criando...' : 'Criar Lista'}
           </button>
         </div>
       </div>

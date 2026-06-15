@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/shared/auth';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { ToastProvider } from '@/shared/ui/toast';
+import { queryClient } from './queryClient';
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -10,15 +12,17 @@ interface AppProvidersProps {
 /**
  * Composição central de provedores da aplicação.
  *
- * Mantém o `main.tsx` enxuto e dá um único ponto para adicionar novos
- * contextos (ex: QueryClientProvider na Fase 4, Auth na Fase 6).
+ * Ordem: ErrorBoundary > QueryClient (estado de servidor) > Auth (sessão) >
+ * Toast (notificações). Mantém o `main.tsx` enxuto.
  */
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>{children}</ToastProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

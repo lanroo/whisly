@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/shared/auth';
+import { storeNameFromUrl } from '@/shared/store-name';
 import type { WishlistSummary } from '@/types/models';
 
 export type ListPrivacy = Database['public']['Enums']['list_privacy'];
@@ -81,5 +82,134 @@ export function useCreateList() {
   return useMutation({
     mutationFn: (input: CreateListInput) => createList(user!.id, input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists'] }),
+  });
+}
+
+// ===== Itens da lista =====
+
+type ItemRow = Database['public']['Tables']['list_items']['Row'];
+
+export interface ListItem {
+  id: string;
+  title: string;
+  /** Nome da loja (derivado da URL ou informado). */
+  store: string | null;
+  price: string | null;
+  url: string | null;
+  imageUrl: string | null;
+  /** Quem adicionou — usado para liberar editar/remover só para o autor. */
+  addedBy: string | null;
+}
+
+export interface ListSummary {
+  id: string;
+  title: string;
+  privacy: ListPrivacy;
+  ownerId: string;
+}
+
+function mapItem(row: ItemRow): ListItem {
+  return {
+    id: row.id,
+    title: row.title,
+    store: row.brand,
+    price: row.price,
+    url: row.url,
+    imageUrl: row.image_url,
+    addedBy: row.added_by,
+  };
+}
+
+async function fetchList(listId: string): Promise<ListSummary | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('lists')
+    .select('id, title, privacy, owner_id')
+    .eq('id', listId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return { id: data.id, title: data.title, privacy: data.privacy, ownerId: data.owner_id };
+}
+
+/** Resumo de uma lista (título, privacidade, dono). */
+export function useList(listId: string | undefined) {
+  return useQuery({
+    queryKey: ['lists', 'one', listId],
+    queryFn: () => fetchList(listId!),
+    enabled: Boolean(listId),
+  });
+}
+
+async function fetchItems(listId: string): Promise<ListItem[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('list_items')
+    .select('*')
+    .eq('list_id', listId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data as ItemRow[]).map(mapItem);
+}
+
+/** Itens de uma lista. */
+export function useListItems(listId: string | undefined) {
+  return useQuery({
+    queryKey: ['list-items', listId],
+    queryFn: () => fetchItems(listId!),
+    enabled: Boolean(listId),
+  });
+}
+
+export interface AddItemInput {
+  title: string;
+  url?: string | null;
+  price?: string | null;
+  /** Imagem capturada do link (Microlink). */
+  imageUrl?: string | null;
+  /** Loja capturada do link; se ausente, derivamos do domínio. */
+  store?: string | null;
+}
+
+async function addItem(userId: string, listId: string, input: AddItemInput): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const url = input.url?.trim() || null;
+  const store = input.store?.trim() || (url ? storeNameFromUrl(url) : null);
+  const { error } = await supabase.from('list_items').insert({
+    list_id: listId,
+    title: input.title.trim(),
+    price: input.price?.trim() || null,
+    url,
+    image_url: input.imageUrl?.trim() || null,
+    brand: store,
+    added_by: userId,
+  });
+  if (error) throw error;
+}
+
+/** Adiciona um item à lista (autor = usuário logado). */
+export function useAddItem(listId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: (input: AddItemInput) => addItem(user!.id, listId, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+async function deleteItem(itemId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase.from('list_items').delete().eq('id', itemId);
+  if (error) throw error;
+}
+
+/** Remove um item (a RLS garante que só o autor consegue). */
+export function useDeleteItem(listId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => deleteItem(itemId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
   });
 }

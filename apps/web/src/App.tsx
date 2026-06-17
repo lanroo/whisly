@@ -4,7 +4,6 @@ import { ActivityPage } from './pages/ActivityPage';
 import { CollaboratorsPage } from './pages/CollaboratorsPage';
 import { CreateListAdvancedPage } from './pages/CreateListAdvancedPage';
 import { CreateListPage } from './pages/CreateListPage';
-import { EmptyListsPage } from './pages/EmptyListsPage';
 import { ExplorePage } from './pages/ExplorePage';
 import { HomePage } from './pages/HomePage';
 import { ListDetailsPage } from './pages/ListDetailsPage';
@@ -33,7 +32,6 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/configuracoes" element={<SettingsPage />} />
         <Route path="/collaborators" element={<CollaboratorsPage />} />
-        <Route path="/lists/empty" element={<EmptyListsPage />} />
         <Route path="/lists" element={<ListsPage />} />
         <Route path="/lists/new" element={<CreateListPage />} />
         <Route path="/lists/new/advanced" element={<CreateListAdvancedPage />} />

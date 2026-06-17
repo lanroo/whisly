@@ -8,7 +8,6 @@ import type {
   ProfileUser,
   PublicFriendList,
   RankedGift,
-  SharedList,
   WishlistSummary,
 } from '../types/models';
 
@@ -66,32 +65,6 @@ export const userLists: WishlistSummary[] = [
     image:
       'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
     to: '/lists/birthday',
-  },
-];
-
-export const sharedLists: SharedList[] = [
-  {
-    id: 'baby-shower',
-    title: 'Chá de Bebê da Maria',
-    badge: 'Compartilhada',
-    image:
-      'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=900&q=80',
-    collaborators: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=160&q=80',
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=160&q=80',
-    ],
-    extraCount: 3,
-  },
-  {
-    id: 'vacation',
-    title: 'Viagem de Férias',
-    badge: 'Compartilhada',
-    image:
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80',
-    collaborators: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80',
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=160&q=80',
-    ],
   },
 ];
 

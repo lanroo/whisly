@@ -326,7 +326,8 @@ input {
 .page {
   width: min(100%, var(--content-width));
   margin: 0 auto;
-  padding: 24px 16px 120px;
+  /* Clearance do nav inferior fixo (72px) + respiro + safe-area de telas com notch. */
+  padding: 24px 16px calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
 .section-link {
@@ -685,17 +686,24 @@ input {
 }
 
 .wishly-home-topbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 
-.wishly-home-topbar__brand span {
-  color: #242941;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 32px;
-  letter-spacing: -0.02em;
+.wishly-home-topbar__avatar {
+  display: inline-flex;
+  border-radius: 999px;
+  filter: grayscale(1);
+  transition: filter 0.2s ease;
+}
+
+.wishly-home-topbar__avatar:hover {
+  filter: grayscale(0);
 }
 
 .wishly-home-page {
@@ -2159,14 +2167,12 @@ input {
 
 .explore-shell,
 .profile-shell,
-.empty-lists-shell,
 .collaborators-shell {
   background: #fcf8fb;
 }
 
 .explore-topbar,
 .profile-topbar,
-.empty-lists-topbar,
 .collaborators-topbar {
   position: sticky;
   top: 0;
@@ -2180,7 +2186,6 @@ input {
 
 .explore-topbar__inner,
 .profile-topbar__inner,
-.empty-lists-topbar__inner,
 .collaborators-topbar__inner {
   width: min(100%, var(--content-width));
   height: 56px;
@@ -2203,7 +2208,6 @@ input {
 
 .explore-topbar__inner h1,
 .profile-topbar__inner h1,
-.empty-lists-topbar__inner h1,
 .collaborators-topbar__inner h1 {
   margin: 0;
   color: #242941;
@@ -2214,7 +2218,6 @@ input {
 
 .explore-page,
 .profile-page,
-.empty-lists-page,
 .collaborators-page {
   padding-top: 72px;
 }
@@ -2623,77 +2626,6 @@ input {
   color: #77767e;
   font-size: 10px;
   line-height: 15px;
-}
-
-.empty-lists-page {
-  display: grid;
-  min-height: calc(100vh - 148px);
-  place-items: center;
-}
-
-.empty-lists-state {
-  width: min(100%, 280px);
-  display: grid;
-  justify-items: center;
-  text-align: center;
-}
-
-.empty-lists-state__icon {
-  width: 104px;
-  height: 104px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.02));
-  color: #242941;
-}
-
-.empty-lists-state__icon .material-symbols-outlined {
-  position: static;
-  font-size: 38px;
-}
-
-.empty-lists-state h2,
-.empty-lists-state p {
-  margin: 0;
-}
-
-.empty-lists-state h2 {
-  margin-top: 18px;
-  color: #1b1b1d;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 32px;
-}
-
-.empty-lists-state p {
-  margin-top: 8px;
-  color: #77767e;
-  font-size: 16px;
-  line-height: 24px;
-}
-
-.empty-lists-state__cta {
-  margin-top: 26px;
-  min-width: 168px;
-  min-height: 44px;
-  padding: 0 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 999px;
-  background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 0 12px 24px rgba(36, 41, 65, 0.2);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 18px;
-}
-
-.empty-lists-state__cta .material-symbols-outlined {
-  position: static;
-  font-size: 18px;
 }
 
 .collaborators-page__add {
@@ -3147,7 +3079,6 @@ input {
   .explore-topbar,
   .profile-topbar,
   .collaborators-topbar,
-  .empty-lists-topbar,
   .top-bar {
     display: none;
   }
@@ -3357,4 +3288,311 @@ input {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ==========================================================================
+   Home — Hero de captura por link + "Como funciona" (onboarding)
+   ========================================================================== */
+
+.wishly-home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-5) var(--space-8);
+  margin: -24px -16px 0;
+  background-image:
+    radial-gradient(at 12% 0%, rgba(211, 228, 254, 0.4) 0px, transparent 52%),
+    radial-gradient(at 88% 4%, rgba(226, 226, 226, 0.32) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(218, 226, 253, 0.45) 0px, transparent 55%);
+}
+
+.wishly-home-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 340px;
+}
+
+.wishly-home-hero__copy h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 42px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  color: var(--text);
+}
+
+.wishly-home-hero__copy h1 em {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.wishly-home-hero__copy p {
+  margin: 0;
+  max-width: 280px;
+  font-size: var(--text-base);
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.wishly-home-capture {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+}
+
+.wishly-home-capture__icon {
+  position: absolute;
+  left: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.wishly-home-capture input {
+  width: 100%;
+  height: 56px;
+  padding: 0 104px 0 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: var(--text-base);
+  box-shadow: var(--shadow-1);
+}
+
+.wishly-home-capture input::placeholder {
+  color: var(--muted);
+}
+
+.wishly-home-capture input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(36, 41, 65, 0.1);
+}
+
+.wishly-home-capture button {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.wishly-home-journey {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.wishly-home-journey__head {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-3);
+}
+
+.wishly-home-journey__label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.wishly-home-journey__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.wishly-home-journey__item {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.wishly-home-journey__num {
+  flex-shrink: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.4;
+  color: var(--line-strong);
+}
+
+.wishly-home-journey__item h4 {
+  margin: 0 0 var(--space-1);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.wishly-home-journey__item p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.wishly-home-section-title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Últimas listas — grid editorial assimétrico */
+.wishly-lists {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.wishly-lists__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-3);
+}
+
+.wishly-lists__head h3 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.wishly-lists__all {
+  flex-shrink: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.wishly-lists__all:hover {
+  color: var(--text);
+}
+
+.wishly-lists__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8) var(--space-3);
+  align-items: start;
+}
+
+.wishly-lists__col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 100%;
+}
+
+.wishly-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.wishly-list-card--hero {
+  grid-column: 1 / -1;
+}
+
+.wishly-list-card__media {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-low);
+}
+
+.wishly-list-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.wishly-list-card:hover .wishly-list-card__media img {
+  transform: scale(1.04);
+}
+
+.wishly-list-card__media--hero {
+  aspect-ratio: 4 / 3;
+}
+
+.wishly-list-card__media--tall {
+  aspect-ratio: 3 / 4;
+}
+
+.wishly-list-card__media--square {
+  aspect-ratio: 1 / 1;
+}
+
+.wishly-list-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wishly-list-card__label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wishly-list-card__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.wishly-list-card--hero .wishly-list-card__title {
+  font-size: 20px;
+}
+
+.wishly-list-card__count {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--muted);
+}
+
+.wishly-list-card__add {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--muted);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.wishly-list-card__add:hover {
+  color: var(--text);
+  border-color: var(--text);
 }

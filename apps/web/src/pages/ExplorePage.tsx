@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
+import { useUnreadActivityCount } from '../features/activity/api';
 import { usePublicLists, type PublicOwner } from '../features/explore/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import { Avatar, EmptyState, Skeleton } from '../shared/ui';
@@ -9,6 +10,7 @@ import { Avatar, EmptyState, Skeleton } from '../shared/ui';
 export function ExplorePage() {
   const navigate = useNavigate();
   const { data: lists, isLoading } = usePublicLists();
+  const { data: unread = 0 } = useUnreadActivityCount();
   const [search, setSearch] = useState('');
 
   const allLists = useMemo(() => lists ?? [], [lists]);
@@ -42,8 +44,11 @@ export function ExplorePage() {
         <div className="explore-topbar__inner">
           <div className="explore-topbar__spacer" />
           <h1>Explorar</h1>
-          <Link aria-label="Notificações" className="icon-button" to="/activity">
+          <Link aria-label="Notificações" className="icon-button bell-wrap" to="/activity">
             <MaterialIcon name="notifications" />
+            {unread > 0 ? (
+              <span className="bell-wrap__badge">{unread > 9 ? '9+' : unread}</span>
+            ) : null}
           </Link>
         </div>
       </header>

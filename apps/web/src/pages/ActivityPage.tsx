@@ -1,208 +1,136 @@
-import { useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
-import { activityFeed } from '../data/mockData';
+import {
+  useActivity,
+  useMarkActivityRead,
+  type ActivityEntry,
+} from '../features/activity/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { useToast } from '../shared/ui';
-import type { ActivityItem } from '../types/models';
+import { EmptyState, Skeleton } from '../shared/ui';
 
-interface ActivityRequestCardProps {
-  item: ActivityItem;
-  onAccept: () => void;
-  onDismiss: () => void;
+const ICON: Record<ActivityEntry['type'], string> = {
+  reservation: 'redeem',
+  collaborator_added: 'group_add',
+  item_added: 'add_shopping_cart',
+};
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'agora';
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h} h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d} d`;
+  const w = Math.floor(d / 7);
+  if (w < 5) return `${w} sem`;
+  const mo = Math.floor(d / 30);
+  return `${mo} mês${mo > 1 ? 'es' : ''}`;
 }
 
-function ActivityRequestCard({ item, onAccept, onDismiss }: ActivityRequestCardProps) {
-  return (
-    <article className="activity-request-card">
-      <div className="activity-avatar activity-avatar--request">
-        <img alt={item.actor} src={item.avatar} />
-        <span className="activity-avatar__badge">
-          <MaterialIcon name="person_add" />
-        </span>
-      </div>
-
-      <div className="activity-request-card__body">
-        <div className="activity-request-card__meta">
-          <p>
-            <strong>{item.actor}</strong> {item.message}
-          </p>
-          <span>{item.time}</span>
-        </div>
-
-        <div className="activity-request-card__actions">
-          <button className="activity-request-card__accept" onClick={onAccept} type="button">
-            Aceitar
-          </button>
-          <button className="activity-request-card__decline" onClick={onDismiss} type="button">
-            Recusar
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function ActivityListItem({ item }: { item: ActivityItem }) {
-  return (
-    <article className="activity-list-item">
-      {item.type === 'system' ? (
-        <div className="activity-avatar activity-avatar--system">
-          <MaterialIcon name={item.icon ?? 'celebration'} />
-        </div>
-      ) : (
-        <div className="activity-avatar">
-          <img alt={item.actor} src={item.avatar} />
-        </div>
-      )}
-
-      <div className="activity-list-item__body">
-        <div className="activity-list-item__meta">
-          <p>
-            {item.type === 'system' ? <strong>{item.actor}:</strong> : <strong>{item.actor}</strong>}{' '}
-            {item.message}{' '}
-            {item.target ? (
-              <span className={`activity-list-item__target ${item.suffix ? 'is-standalone' : ''}`}>
-                {item.target}
-              </span>
-            ) : null}{' '}
-            {item.suffix ? <span className="activity-list-item__suffix">{item.suffix}</span> : null}
-          </p>
-          <span>{item.time}</span>
-        </div>
-
-        {item.previewImage ? (
-          <div className="activity-list-item__preview">
-            <img alt="" src={item.previewImage} />
-          </div>
-        ) : null}
-
-        {item.privacyLabel ? (
-          <div className="activity-list-item__privacy">
-            <MaterialIcon name="lock" />
-            <span>{item.privacyLabel}</span>
-          </div>
-        ) : null}
-
-        {item.collaborators ? (
-          <div className="activity-list-item__faces">
-            {item.collaborators.map((avatar, index) => (
-              <img key={`${item.id}-${index + 1}`} alt="" src={avatar} />
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </article>
-  );
+function renderMessage(item: ActivityEntry) {
+  const list = item.listTitle ?? 'uma lista';
+  const actor = item.actorName ?? 'Alguém';
+  switch (item.type) {
+    case 'reservation':
+      return (
+        <>
+          🎁 Alguém reservou um presente da sua lista <strong>{list}</strong>.
+        </>
+      );
+    case 'collaborator_added':
+      return (
+        <>
+          <strong>{actor}</strong> adicionou você à lista <strong>{list}</strong>.
+        </>
+      );
+    case 'item_added':
+      return (
+        <>
+          <strong>{actor}</strong> adicionou {item.itemTitle ? <strong>{item.itemTitle}</strong> : 'um item'}{' '}
+          em <strong>{list}</strong>.
+        </>
+      );
+    default:
+      return null;
+  }
 }
 
 export function ActivityPage() {
-  const toast = useToast();
-  const [activeTab, setActiveTab] = useState('all');
-  const [query, setQuery] = useState('');
-  const [dismissedRequests, setDismissedRequests] = useState<string[]>([]);
+  const { data: feed, isLoading } = useActivity();
+  const markRead = useMarkActivityRead();
+  const entries = feed ?? [];
 
-  const visibleFeed = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return activityFeed.filter((item) => {
-      if (item.type === 'request' && dismissedRequests.includes(item.id)) {
-        return false;
-      }
-
-      if (activeTab === 'requests' && item.type !== 'request') {
-        return false;
-      }
-
-      if (!normalizedQuery) {
-        return true;
-      }
-
-      const haystack = [item.actor, item.message, item.target, item.suffix, item.privacyLabel]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return haystack.includes(normalizedQuery);
-    });
-  }, [activeTab, dismissedRequests, query]);
-
-  function dismissRequest(id: string) {
-    setDismissedRequests((current) => [...current, id]);
-  }
-
-  function acceptRequest(item: ActivityItem) {
-    toast.show({
-      variant: 'success',
-      title: 'Pedido aceito',
-      description: `Agora você e ${item.actor} são amigos.`,
-    });
-    dismissRequest(item.id);
-  }
+  // Ao abrir, marca tudo como lido (limpa o badge do sino).
+  useEffect(() => {
+    if (entries.some((e) => !e.read)) {
+      markRead.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries.length]);
 
   return (
     <AppShell
-      activeNavKey="shared"
       className="activity-shell"
       enablePullToRefresh
-      fabIcon="person_add"
-      fabLabel="Adicionar amigo"
       navItems={MAIN_NAV_ITEMS}
+      showFab={false}
     >
       <header className="wishly-home-topbar">
         <div className="wishly-home-topbar__inner">
-          <div className="activity-topbar__spacer" />
+          <Link aria-label="Voltar" className="icon-button" to="/home">
+            <MaterialIcon name="chevron_left" />
+          </Link>
           <div className="wishly-home-topbar__brand activity-topbar__brand">
-            <span>WISHLY</span>
+            <span>Atividade</span>
           </div>
           <div className="activity-topbar__spacer" />
         </div>
       </header>
 
       <main className="page activity-page">
-        <section className="activity-page__controls">
-          <label className="search-box activity-search">
-            <MaterialIcon name="search" />
-            <input
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar atividade..."
-              type="text"
-              value={query}
-            />
-          </label>
-
-          <div className="activity-tabs">
-            <button
-              className={activeTab === 'all' ? 'is-active' : ''}
-              onClick={() => setActiveTab('all')}
-              type="button"
-            >
-              Tudo
-            </button>
-            <button
-              className={activeTab === 'requests' ? 'is-active' : ''}
-              onClick={() => setActiveTab('requests')}
-              type="button"
-            >
-              Solicitações
-            </button>
-          </div>
-        </section>
-
-        <section className="activity-feed">
-          {visibleFeed.map((item) =>
-            item.type === 'request' ? (
-              <ActivityRequestCard
-                key={item.id}
-                item={item}
-                onAccept={() => acceptRequest(item)}
-                onDismiss={() => dismissRequest(item.id)}
-              />
-            ) : (
-              <ActivityListItem key={item.id} item={item} />
-            ),
-          )}
-        </section>
+        {isLoading ? (
+          <section className="activity-feed">
+            <Skeleton height={68} width="100%" />
+            <Skeleton height={68} width="100%" />
+            <Skeleton height={68} width="100%" />
+          </section>
+        ) : entries.length === 0 ? (
+          <EmptyState
+            description="Reservas, novos colaboradores e itens em listas compartilhadas aparecem aqui."
+            icon="notifications"
+            title="Nenhuma atividade ainda"
+          />
+        ) : (
+          <section className="activity-feed">
+            {entries.map((item) => {
+              const body = (
+                <>
+                  <div className={`activity-item__icon activity-item__icon--${item.type}`}>
+                    <MaterialIcon name={ICON[item.type]} />
+                  </div>
+                  <div className="activity-item__body">
+                    <p>{renderMessage(item)}</p>
+                    <span>{timeAgo(item.createdAt)}</span>
+                  </div>
+                  {!item.read ? <span className="activity-item__dot" /> : null}
+                </>
+              );
+              return item.listId ? (
+                <Link className="activity-item" key={item.id} to={`/lists/${item.listId}`}>
+                  {body}
+                </Link>
+              ) : (
+                <article className="activity-item" key={item.id}>
+                  {body}
+                </article>
+              );
+            })}
+          </section>
+        )}
       </main>
     </AppShell>
   );

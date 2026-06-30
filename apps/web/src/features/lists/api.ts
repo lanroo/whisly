@@ -183,7 +183,15 @@ export interface ListItem {
   imageUrl: string | null;
   /** Quem adicionou — usado para liberar editar/remover só para o autor. */
   addedBy: string | null;
+  /** Reserva visível (escondida do dono = surpresa). null se não reservado/visível. */
+  reservation: { id: string; reservedBy: string } | null;
 }
+
+type ReservationEmbed = { id: string; reserved_by: string };
+type ItemRowWithReservation = ItemRow & {
+  // PostgREST devolve objeto (relação 1-para-1 por unique(item_id)) ou array.
+  reservations?: ReservationEmbed | ReservationEmbed[] | null;
+};
 
 export interface ListSummary {
   id: string;
@@ -193,7 +201,8 @@ export interface ListSummary {
   ownerId: string;
 }
 
-function mapItem(row: ItemRow): ListItem {
+function mapItem(row: ItemRowWithReservation): ListItem {
+  const resv = Array.isArray(row.reservations) ? row.reservations[0] : row.reservations;
   return {
     id: row.id,
     title: row.title,
@@ -202,6 +211,7 @@ function mapItem(row: ItemRow): ListItem {
     url: row.url,
     imageUrl: row.image_url,
     addedBy: row.added_by,
+    reservation: resv ? { id: resv.id, reservedBy: resv.reserved_by } : null,
   };
 }
 
@@ -237,20 +247,22 @@ async function fetchItems(listId: string): Promise<ListItem[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('list_items')
-    .select('*')
+    .select('*, reservations(id, reserved_by)')
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data as ItemRow[]).map(mapItem);
+  return (data as unknown as ItemRowWithReservation[]).map(mapItem);
 }
 
-/** Itens de uma lista. */
+/** Itens de uma lista. Inclui reservas (dependem de auth.uid()), por isso
+ * espera a sessão e re-busca por usuário. */
 export function useListItems(listId: string | undefined) {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['list-items', listId],
+    queryKey: ['list-items', listId, user?.id],
     queryFn: () => fetchItems(listId!),
-    enabled: Boolean(listId),
+    enabled: Boolean(listId && user),
   });
 }
 
@@ -301,6 +313,44 @@ export function useDeleteItem(listId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (itemId: string) => deleteItem(itemId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+// ===== Reservas de presente (escondidas do dono) =====
+
+async function reserveItem(itemId: string, userId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase
+    .from('reservations')
+    .insert({ item_id: itemId, reserved_by: userId });
+  if (error) {
+    if (error.code === '23505') throw new Error('Este presente já foi reservado.');
+    throw error;
+  }
+}
+
+/** Reserva um item (presente) — invisível para o dono da lista. */
+export function useReserveItem(listId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: (itemId: string) => reserveItem(itemId, user!.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+async function unreserveItem(reservationId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase.from('reservations').delete().eq('id', reservationId);
+  if (error) throw error;
+}
+
+/** Cancela a própria reserva (RLS: só o autor da reserva). */
+export function useUnreserveItem(listId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (reservationId: string) => unreserveItem(reservationId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
   });
 }

@@ -4059,3 +4059,39 @@ button.explore-product-card {
   font-family: var(--font-serif);
   font-weight: 600;
 }
+
+/* Reserva de presente no card de item */
+.item-card__reserve {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-right: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #f2f2f7;
+  color: #242941;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.item-card__reserve:hover:not(:disabled) {
+  background: #e7e7ee;
+}
+
+.item-card__reserve.is-mine {
+  background: rgba(11, 143, 99, 0.12);
+  color: #0b8f63;
+}
+
+.item-card__reserve:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.item-card__reserve .material-symbols-outlined {
+  font-size: 16px;
+}

@@ -3795,3 +3795,135 @@ a.item-card__link:hover {
 .item-card__delete:hover {
   background: var(--danger-bg);
 }
+
+/* ============================================================
+   Explorar / Perfil / Compartilhados — dados reais
+   ============================================================ */
+
+/* Explore: card de lista pública como botão */
+button.explore-product-card {
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+.explore-product-row--wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.explore-empty-hint {
+  margin: 4px 0 0;
+  color: #77767e;
+  font-size: 14px;
+}
+
+/* Home: contagem em compartilhadas */
+.wishly-shared-card__count {
+  color: #77767e;
+  font-size: 13px;
+}
+
+/* Detalhe da lista: ações + leitura */
+.list-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.list-detail-readonly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f2f2f7;
+  color: #46464d;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.list-detail-readonly .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Modal de compartilhar */
+.share-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.share-form__row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.share-form__role {
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #f2f2f7;
+  border: 1px solid transparent;
+  color: var(--text, #242941);
+  font: inherit;
+}
+
+.share-list {
+  display: grid;
+  gap: 10px;
+}
+
+.share-list__empty {
+  margin: 0;
+  color: #77767e;
+  font-size: 14px;
+}
+
+.share-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f7f7fa;
+}
+
+.share-list__info {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.share-list__info strong {
+  font-size: 14px;
+  color: var(--text, #242941);
+}
+
+.share-list__info span {
+  font-size: 12px;
+  color: #77767e;
+}
+
+.share-list__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #c93d3d;
+  flex: none;
+}
+
+.share-list__remove:hover {
+  background: rgba(201, 61, 61, 0.1);
+}

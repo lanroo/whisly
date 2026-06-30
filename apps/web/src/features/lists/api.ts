@@ -213,3 +213,143 @@ export function useDeleteItem(listId: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
   });
 }
+
+// ===== Compartilhamento / colaboradores =====
+
+export type CollaboratorRole = Database['public']['Enums']['collaborator_role'];
+
+type SharedRow = {
+  role: CollaboratorRole;
+  lists: (ListRow & { list_items: { count: number }[] }) | null;
+};
+
+async function fetchSharedLists(userId: string): Promise<WishlistSummary[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('collaborators')
+    .select('role, lists(*, list_items(count))')
+    .eq('user_id', userId);
+
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as SharedRow[])
+    .filter((row) => row.lists)
+    .map((row) => mapList(row.lists as ListWithCount));
+}
+
+/** Listas compartilhadas comigo (onde sou colaborador). */
+export function useSharedLists() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['lists', 'shared', user?.id],
+    queryFn: () => fetchSharedLists(user!.id),
+    enabled: Boolean(user),
+  });
+}
+
+export interface Collaborator {
+  id: string;
+  userId: string;
+  role: CollaboratorRole;
+  name: string;
+  handle: string | null;
+  avatarUrl: string | null;
+}
+
+async function fetchCollaborators(listId: string): Promise<Collaborator[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('collaborators')
+    .select('id, user_id, role')
+    .eq('list_id', listId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  const rows = data ?? [];
+  const ids = [...new Set(rows.map((r) => r.user_id))];
+
+  const profiles = new Map<string, { name: string; handle: string | null; avatarUrl: string | null }>();
+  if (ids.length > 0) {
+    const { data: profs, error: pErr } = await supabase
+      .from('profiles')
+      .select('id, name, handle, avatar_url')
+      .in('id', ids);
+    if (pErr) throw pErr;
+    for (const p of profs ?? []) {
+      profiles.set(p.id, { name: p.name ?? 'Usuário', handle: p.handle, avatarUrl: p.avatar_url });
+    }
+  }
+
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    role: r.role,
+    name: profiles.get(r.user_id)?.name ?? 'Usuário',
+    handle: profiles.get(r.user_id)?.handle ?? null,
+    avatarUrl: profiles.get(r.user_id)?.avatarUrl ?? null,
+  }));
+}
+
+/** Colaboradores de uma lista. */
+export function useCollaborators(listId: string | undefined) {
+  return useQuery({
+    queryKey: ['collaborators', listId],
+    queryFn: () => fetchCollaborators(listId!),
+    enabled: Boolean(listId),
+  });
+}
+
+function normalizeHandle(handle: string): string {
+  return handle.trim().replace(/^@+/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
+}
+
+async function addCollaborator(
+  listId: string,
+  handle: string,
+  role: CollaboratorRole,
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const normalized = normalizeHandle(handle);
+  if (!normalized) throw new Error('Informe o @usuário.');
+
+  const { data: profile, error: pErr } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('handle', normalized)
+    .maybeSingle();
+  if (pErr) throw pErr;
+  if (!profile) throw new Error('Usuário não encontrado. Confirme o @usuário.');
+
+  const { error } = await supabase
+    .from('collaborators')
+    .insert({ list_id: listId, user_id: profile.id, role });
+  if (error) {
+    if (error.code === '23505') throw new Error('Essa pessoa já é colaboradora.');
+    throw error;
+  }
+}
+
+/** Adiciona um colaborador a uma lista pelo @usuário. */
+export function useAddCollaborator(listId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ handle, role }: { handle: string; role: CollaboratorRole }) =>
+      addCollaborator(listId!, handle, role),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators', listId] }),
+  });
+}
+
+async function removeCollaborator(collaboratorId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase.from('collaborators').delete().eq('id', collaboratorId);
+  if (error) throw error;
+}
+
+/** Remove um colaborador (a RLS garante: dono da lista ou o próprio). */
+export function useRemoveCollaborator(listId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (collaboratorId: string) => removeCollaborator(collaboratorId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators', listId] }),
+  });
+}

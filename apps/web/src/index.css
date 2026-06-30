@@ -3991,3 +3991,33 @@ button.explore-product-card {
   gap: 12px;
   justify-content: flex-end;
 }
+
+/* ============================================================
+   Unificação editorial — títulos serifados (Playfair) coerentes
+   com a Home, em Minhas Listas / Explorar / Perfil
+   ============================================================ */
+.lists-page__hero h2 {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.explore-section__heading h2,
+.profile-menu h2 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.profile-hero h2 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+/* Topbars de Explorar/Perfil no mesmo tom editorial da Home */
+.explore-topbar h1,
+.profile-topbar h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+}

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { PasswordField } from '../components/PasswordField';
@@ -7,6 +7,7 @@ import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../shared/auth';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
+import { disablePush, enablePush, isPushSubscribed, isPushSupported, sendTestPush } from '../shared/push';
 import { Button, Modal, useToast } from '../shared/ui';
 
 export function SettingsPage() {
@@ -14,19 +15,54 @@ export function SettingsPage() {
   const toast = useToast();
   const { signOut, updatePassword } = useAuth();
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const pushSupported = isPushSupported();
   const [changingPassword, setChangingPassword] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+
+  useEffect(() => {
+    isPushSubscribed().then(setPushEnabled);
+  }, []);
 
   function comingSoon(feature: string) {
     toast.show({ title: feature, description: 'Em breve disponível.' });
   }
 
-  function togglePush() {
-    setPushEnabled((value) => !value);
-    toast.show({
-      variant: pushEnabled ? 'info' : 'success',
-      title: pushEnabled ? 'Notificações desativadas' : 'Notificações ativadas',
-    });
+  async function togglePush() {
+    if (pushBusy) return;
+    setPushBusy(true);
+    try {
+      if (pushEnabled) {
+        await disablePush();
+        setPushEnabled(false);
+        toast.show({ variant: 'info', title: 'Notificações desativadas' });
+      } else {
+        await enablePush();
+        setPushEnabled(true);
+        toast.show({ variant: 'success', title: 'Notificações ativadas' });
+      }
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível alterar as notificações',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function handleTestPush() {
+    try {
+      await sendTestPush();
+      toast.show({ title: 'Notificação de teste enviada' });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Falha ao enviar teste',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
 
   async function handleLogout() {
@@ -88,10 +124,21 @@ export function SettingsPage() {
           <div className="settings-card">
             <SettingsToggleRow
               checked={pushEnabled}
-              description="Receba avisos quando reservarem um presente ou compartilharem uma lista"
+              description={
+                pushSupported
+                  ? 'Receba avisos quando reservarem um presente ou compartilharem uma lista'
+                  : 'Seu navegador não suporta notificações push.'
+              }
               onChange={togglePush}
               title="Notificações push"
             />
+            {pushEnabled ? (
+              <SettingsSelectRow
+                icon="notifications_active"
+                onClick={handleTestPush}
+                title="Enviar notificação de teste"
+              />
+            ) : null}
           </div>
         </section>
 

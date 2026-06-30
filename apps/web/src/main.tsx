@@ -20,3 +20,12 @@ createRoot(rootElement).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+// Service worker (PWA + Web Push). Registro best-effort.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+      // sem SW: app segue funcionando, só sem push/instalação
+    });
+  });
+}

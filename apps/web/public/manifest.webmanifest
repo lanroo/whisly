@@ -1,0 +1,18 @@
+{
+  "name": "Whisly",
+  "short_name": "Whisly",
+  "description": "Sua wishlist universal — guarde e compartilhe seus desejos.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fcf8fb",
+  "theme_color": "#242941",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

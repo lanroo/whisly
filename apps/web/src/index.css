@@ -4125,3 +4125,100 @@ a.collaborator-row {
   height: 100%;
   object-fit: cover;
 }
+
+/* Feed de Atividade (dados reais) */
+.activity-feed {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(199, 197, 206, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  text-decoration: none;
+  color: inherit;
+}
+
+.activity-item__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 999px;
+  background: #f2f2f7;
+  color: #242941;
+}
+
+.activity-item__icon--reservation {
+  background: rgba(201, 61, 61, 0.12);
+  color: #c93d3d;
+}
+
+.activity-item__icon--collaborator_added {
+  background: rgba(36, 41, 65, 0.1);
+  color: #242941;
+}
+
+.activity-item__icon--item_added {
+  background: rgba(11, 143, 99, 0.12);
+  color: #0b8f63;
+}
+
+.activity-item__icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.activity-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-item__body p {
+  margin: 0;
+  color: #1b1b1d;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.activity-item__body span {
+  display: block;
+  margin-top: 2px;
+  color: #8a8a93;
+  font-size: 12px;
+}
+
+.activity-item__dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 999px;
+  background: #c93d3d;
+}
+
+/* Badge de não lidas no sino */
+.bell-wrap {
+  position: relative;
+}
+
+.bell-wrap__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #c93d3d;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}

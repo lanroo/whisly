@@ -14,6 +14,39 @@ export type Database = {
   };
   public: {
     Tables: {
+      activity: {
+        Row: {
+          actor_id: string | null;
+          created_at: string;
+          id: string;
+          list_id: string | null;
+          metadata: Json;
+          read: boolean;
+          type: string;
+          user_id: string;
+        };
+        Insert: {
+          actor_id?: string | null;
+          created_at?: string;
+          id?: string;
+          list_id?: string | null;
+          metadata?: Json;
+          read?: boolean;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          actor_id?: string | null;
+          created_at?: string;
+          id?: string;
+          list_id?: string | null;
+          metadata?: Json;
+          read?: boolean;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       collaborators: {
         Row: {
           created_at: string;

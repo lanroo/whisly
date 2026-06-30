@@ -85,6 +85,90 @@ export function useCreateList() {
   });
 }
 
+export interface UpdateListInput {
+  title?: string;
+  description?: string | null;
+  privacy?: ListPrivacy;
+}
+
+async function updateList(listId: string, input: UpdateListInput): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const patch: Database['public']['Tables']['lists']['Update'] = {};
+  if (input.title !== undefined) patch.title = input.title.trim();
+  if (input.description !== undefined) patch.description = input.description;
+  if (input.privacy !== undefined) patch.privacy = input.privacy;
+
+  const { error } = await supabase.from('lists').update(patch).eq('id', listId);
+  if (error) throw error;
+}
+
+/** Edita uma lista (título, descrição, privacidade). */
+export function useUpdateList(listId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateListInput) => updateList(listId!, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lists', 'one', listId] });
+      queryClient.invalidateQueries({ queryKey: ['lists', 'mine'] });
+    },
+  });
+}
+
+async function deleteList(listId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase.from('lists').delete().eq('id', listId);
+  if (error) throw error;
+}
+
+/** Exclui uma lista (cascata remove itens e colaboradores). */
+export function useDeleteList() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (listId: string) => deleteList(listId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lists', 'mine'] }),
+  });
+}
+
+// ===== Captura de link + upload de imagem =====
+
+const IMAGE_BUCKET = 'item-images';
+
+export interface LinkPreview {
+  title?: string;
+  store?: string;
+  price?: string;
+  image?: string;
+}
+
+/**
+ * Captura metadados de um produto pela URL via Edge Function `link-preview`,
+ * que lê Open Graph + JSON-LD e HOSPEDA a imagem no Storage (evita hotlink 403).
+ */
+export async function fetchLinkPreview(url: string): Promise<LinkPreview> {
+  if (!supabase) return {};
+  const { data, error } = await supabase.functions.invoke<{
+    title?: string;
+    brand?: string;
+    price?: string;
+    image?: string;
+    error?: string;
+  }>('link-preview', { body: { url } });
+  if (error || !data || data.error) return {};
+  return { title: data.title, store: data.brand, price: data.price, image: data.image };
+}
+
+/** Envia uma imagem do dispositivo para o Storage e retorna a URL pública. */
+export async function uploadItemImage(file: File): Promise<string> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const path = `${crypto.randomUUID()}.${ext || 'jpg'}`;
+  const { error } = await supabase.storage
+    .from(IMAGE_BUCKET)
+    .upload(path, file, { contentType: file.type || undefined, upsert: false });
+  if (error) throw error;
+  return supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
 // ===== Itens da lista =====
 
 type ItemRow = Database['public']['Tables']['list_items']['Row'];
@@ -104,6 +188,7 @@ export interface ListItem {
 export interface ListSummary {
   id: string;
   title: string;
+  description: string | null;
   privacy: ListPrivacy;
   ownerId: string;
 }
@@ -124,13 +209,19 @@ async function fetchList(listId: string): Promise<ListSummary | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from('lists')
-    .select('id, title, privacy, owner_id')
+    .select('id, title, description, privacy, owner_id')
     .eq('id', listId)
     .maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
-  return { id: data.id, title: data.title, privacy: data.privacy, ownerId: data.owner_id };
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    privacy: data.privacy,
+    ownerId: data.owner_id,
+  };
 }
 
 /** Resumo de uma lista (título, privacidade, dono). */

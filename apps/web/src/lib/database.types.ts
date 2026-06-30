@@ -97,6 +97,7 @@ export type Database = {
         Row: {
           cover_image: string | null;
           created_at: string;
+          description: string | null;
           id: string;
           owner_id: string;
           privacy: Database['public']['Enums']['list_privacy'];
@@ -106,6 +107,7 @@ export type Database = {
         Insert: {
           cover_image?: string | null;
           created_at?: string;
+          description?: string | null;
           id?: string;
           owner_id: string;
           privacy?: Database['public']['Enums']['list_privacy'];
@@ -115,6 +117,7 @@ export type Database = {
         Update: {
           cover_image?: string | null;
           created_at?: string;
+          description?: string | null;
           id?: string;
           owner_id?: string;
           privacy?: Database['public']['Enums']['list_privacy'];

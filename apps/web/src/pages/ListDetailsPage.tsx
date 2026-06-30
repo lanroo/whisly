@@ -1,21 +1,25 @@
-import { useMemo, useState, type FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { TopBar } from '../components/TopBar';
 import {
+  fetchLinkPreview,
+  uploadItemImage,
   useAddCollaborator,
   useAddItem,
   useCollaborators,
   useDeleteItem,
+  useDeleteList,
   useList,
   useListItems,
   useRemoveCollaborator,
+  useUpdateList,
   type CollaboratorRole,
   type ListItem,
+  type ListPrivacy,
 } from '../features/lists/api';
 import { useAuth } from '../shared/auth';
-import { fetchLinkPreview } from '../shared/link-preview';
 import { Avatar, Button, EmptyState, Modal, Skeleton, useToast } from '../shared/ui';
 
 const ROLE_LABEL: Record<CollaboratorRole, string> = {
@@ -24,8 +28,15 @@ const ROLE_LABEL: Record<CollaboratorRole, string> = {
   viewer: 'Leitor',
 };
 
+const PRIVACY_OPTIONS: { value: ListPrivacy; label: string }[] = [
+  { value: 'private', label: 'Privada' },
+  { value: 'collaborative', label: 'Colaborativa' },
+  { value: 'public', label: 'Pública' },
+];
+
 export function ListDetailsPage() {
   const { listId } = useParams<{ listId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
 
@@ -34,19 +45,31 @@ export function ListDetailsPage() {
   const { data: collaborators } = useCollaborators(listId);
   const addItem = useAddItem(listId ?? '');
   const deleteItem = useDeleteItem(listId ?? '');
+  const updateList = useUpdateList(listId);
+  const deleteList = useDeleteList();
   const addCollaborator = useAddCollaborator(listId);
   const removeCollaborator = useRemoveCollaborator(listId);
 
+  // Form de adicionar item
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [store, setStore] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
+  // Compartilhar
   const [shareOpen, setShareOpen] = useState(false);
   const [shareHandle, setShareHandle] = useState('');
   const [shareRole, setShareRole] = useState<CollaboratorRole>('editor');
+
+  // Editar / excluir lista
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editPrivacy, setEditPrivacy] = useState<ListPrivacy>('private');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isOwner = Boolean(user) && list?.ownerId === user?.id;
   const myRole = useMemo(
@@ -61,15 +84,36 @@ export function ListDetailsPage() {
     setCapturing(true);
     try {
       const preview = await fetchLinkPreview(target);
-      if (preview) {
-        setStore(preview.store);
-        setImage(preview.image);
-        if (preview.title && !title.trim()) setTitle(preview.title);
-      }
+      if (preview.store) setStore(preview.store);
+      if (preview.image) setImage(preview.image);
+      if (preview.price && !price.trim()) setPrice(preview.price);
+      if (preview.title && !title.trim()) setTitle(preview.title);
     } catch {
-      // Captura é best-effort.
+      // best-effort
     } finally {
       setCapturing(false);
+    }
+  }
+
+  async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.show({ variant: 'error', title: 'Selecione um arquivo de imagem' });
+      return;
+    }
+    setUploading(true);
+    try {
+      setImage(await uploadItemImage(file));
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível enviar a imagem',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -112,6 +156,50 @@ export function ListDetailsPage() {
     }
   }
 
+  function openEdit() {
+    setEditTitle(list?.title ?? '');
+    setEditDesc(list?.description ?? '');
+    setEditPrivacy(list?.privacy ?? 'private');
+    setEditOpen(true);
+  }
+
+  async function handleSaveEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editTitle.trim()) {
+      toast.show({ title: 'Dê um nome à lista' });
+      return;
+    }
+    try {
+      await updateList.mutateAsync({
+        title: editTitle,
+        description: editDesc.trim() || null,
+        privacy: editPrivacy,
+      });
+      setEditOpen(false);
+      toast.show({ variant: 'success', title: 'Lista atualizada' });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível salvar',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  async function handleDeleteList() {
+    try {
+      await deleteList.mutateAsync(listId!);
+      toast.show({ variant: 'success', title: 'Lista excluída' });
+      navigate('/lists');
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível excluir',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
   async function handleAddCollaborator(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
@@ -148,12 +236,29 @@ export function ListDetailsPage() {
       <TopBar backTo="/lists" title={list?.title ?? 'Lista'} />
 
       <main className="page list-detail-page">
+        {list?.description ? <p className="list-detail-desc">{list.description}</p> : null}
+
         {isOwner ? (
           <div className="list-detail-actions">
             <Button icon="group_add" onClick={() => setShareOpen(true)} variant="secondary">
-              Compartilhar
-              {collabList.length > 0 ? ` (${collabList.length})` : ''}
+              Compartilhar{collabList.length > 0 ? ` (${collabList.length})` : ''}
             </Button>
+            <button
+              aria-label="Editar lista"
+              className="icon-button"
+              onClick={openEdit}
+              type="button"
+            >
+              <MaterialIcon name="edit" />
+            </button>
+            <button
+              aria-label="Excluir lista"
+              className="icon-button icon-button--danger"
+              onClick={() => setConfirmDelete(true)}
+              type="button"
+            >
+              <MaterialIcon name="delete" />
+            </button>
           </div>
         ) : null}
 
@@ -173,12 +278,25 @@ export function ListDetailsPage() {
 
             {capturing ? (
               <p className="item-add__status">Buscando dados do link…</p>
-            ) : image || store ? (
+            ) : image ? (
               <div className="item-add__preview">
-                {image ? <img alt="" className="item-add__preview-thumb" src={image} /> : null}
-                {store ? <span className="item-card__store">{store}</span> : null}
+                <img alt="" className="item-add__preview-thumb" src={image} />
+                <div className="item-add__preview-info">
+                  {store ? <span className="item-card__store">{store}</span> : null}
+                  <label className="item-add__upload">
+                    <MaterialIcon name="upload" />
+                    {uploading ? 'Enviando...' : 'Trocar imagem'}
+                    <input accept="image/*" hidden onChange={handleImageUpload} type="file" />
+                  </label>
+                </div>
               </div>
-            ) : null}
+            ) : (
+              <label className="item-add__upload item-add__upload--block">
+                <MaterialIcon name="add_photo_alternate" />
+                {uploading ? 'Enviando...' : 'Enviar imagem do dispositivo'}
+                <input accept="image/*" hidden onChange={handleImageUpload} type="file" />
+              </label>
+            )}
 
             <div className="item-add__row">
               <input
@@ -289,6 +407,67 @@ export function ListDetailsPage() {
               </div>
             ))
           )}
+        </div>
+      </Modal>
+
+      <Modal onClose={() => setEditOpen(false)} open={editOpen} title="Editar lista">
+        <form className="profile-edit-form" onSubmit={handleSaveEdit}>
+          <label className="profile-edit-field">
+            <span>Nome da lista</span>
+            <input onChange={(e) => setEditTitle(e.target.value)} type="text" value={editTitle} />
+          </label>
+          <label className="profile-edit-field">
+            <span>Descrição</span>
+            <textarea
+              onChange={(e) => setEditDesc(e.target.value)}
+              placeholder="Uma mensagem para quem vir a lista (opcional)"
+              rows={3}
+              value={editDesc}
+            />
+          </label>
+          <label className="profile-edit-field">
+            <span>Privacidade</span>
+            <select
+              onChange={(e) => setEditPrivacy(e.target.value as ListPrivacy)}
+              value={editPrivacy}
+            >
+              {PRIVACY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="profile-edit-actions">
+            <Button onClick={() => setEditOpen(false)} type="button" variant="ghost">
+              Cancelar
+            </Button>
+            <Button disabled={updateList.isPending} type="submit">
+              {updateList.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal onClose={() => setConfirmDelete(false)} open={confirmDelete} title="Excluir lista?">
+        <div className="confirm-dialog">
+          <p>
+            A lista e todos os seus itens serão excluídos permanentemente. Esta ação não pode ser
+            desfeita.
+          </p>
+          <div className="confirm-dialog__actions">
+            <Button onClick={() => setConfirmDelete(false)} type="button" variant="ghost">
+              Cancelar
+            </Button>
+            <button
+              className="primary-button primary-button--danger"
+              disabled={deleteList.isPending}
+              onClick={handleDeleteList}
+              type="button"
+            >
+              {deleteList.isPending ? 'Excluindo...' : 'Excluir'}
+            </button>
+          </div>
         </div>
       </Modal>
     </AppShell>

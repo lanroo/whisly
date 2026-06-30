@@ -3927,3 +3927,67 @@ button.explore-product-card {
 .share-list__remove:hover {
   background: rgba(201, 61, 61, 0.1);
 }
+
+/* Detalhe da lista — extras (descrição, ações, upload, confirmação) */
+.list-detail-desc {
+  margin: 0 0 14px;
+  color: #46464d;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.list-detail-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.list-detail-actions .ui-button {
+  flex: 1;
+}
+
+.icon-button--danger {
+  color: #c93d3d;
+}
+
+.item-add__upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #242941;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.item-add__upload .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.item-add__upload--block {
+  justify-content: center;
+  padding: 12px;
+  border: 1px dashed rgba(36, 41, 65, 0.25);
+  border-radius: 12px;
+  color: #46464d;
+}
+
+.item-add__preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.confirm-dialog p {
+  margin: 0 0 18px;
+  color: #46464d;
+  line-height: 1.5;
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}

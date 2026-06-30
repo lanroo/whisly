@@ -2475,9 +2475,10 @@ input {
 }
 
 .profile-hero__avatar {
+  position: relative;
   width: 104px;
   height: 104px;
-  padding: 5px;
+  padding: 4px;
   border-radius: 999px;
   background:
     linear-gradient(180deg, #f7dfb3 0%, #b07435 100%);
@@ -2486,12 +2487,49 @@ input {
     0 3px 10px rgba(36, 41, 65, 0.08);
 }
 
-.profile-hero__avatar img {
+.profile-hero__avatar img,
+.profile-hero__avatar-fallback {
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 999px;
   border: 3px solid #ffffff;
+}
+
+.profile-hero__avatar-fallback {
+  background: linear-gradient(180deg, #2f3551 0%, #242941 100%);
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.profile-hero__avatar-edit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #fff;
+  color: #242941;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.profile-hero__avatar-edit:active {
+  transform: scale(0.92);
+}
+
+.profile-hero__avatar-edit .material-symbols-outlined {
+  font-size: 18px;
 }
 
 .profile-hero h2 {

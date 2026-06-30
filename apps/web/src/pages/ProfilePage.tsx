@@ -1,11 +1,12 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { SettingsSelectRow } from '../components/SettingsSelectRow';
+import { uploadItemImage } from '../features/lists/api';
 import { useMyProfile, useUpdateProfile } from '../features/profile/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { Avatar, Button, Modal, Skeleton, useToast } from '../shared/ui';
+import { Button, Modal, Skeleton, useToast } from '../shared/ui';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -17,6 +18,36 @@ export function ProfilePage() {
   const [name, setName] = useState('');
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  async function handleAvatarUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !profile) return;
+    if (!file.type.startsWith('image/')) {
+      toast.show({ variant: 'error', title: 'Selecione uma imagem' });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const avatarUrl = await uploadItemImage(file);
+      await updateProfile.mutateAsync({
+        name: profile.name,
+        handle: profile.handle,
+        bio: profile.bio,
+        avatarUrl,
+      });
+      toast.show({ variant: 'success', title: 'Foto atualizada' });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível enviar a foto',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   function openEdit() {
     setName(profile?.name ?? '');
@@ -82,8 +113,23 @@ export function ProfilePage() {
               {profile?.avatarUrl ? (
                 <img alt={profile.name} src={profile.avatarUrl} />
               ) : (
-                <Avatar name={profile?.name} size="lg" />
+                <span className="profile-hero__avatar-fallback">
+                  {(profile?.name ?? '?').trim().charAt(0).toUpperCase() || '?'}
+                </span>
               )}
+              <label
+                className="profile-hero__avatar-edit"
+                aria-label="Trocar foto de perfil"
+              >
+                <MaterialIcon name={uploadingAvatar ? 'hourglass_top' : 'photo_camera'} />
+                <input
+                  accept="image/*"
+                  disabled={uploadingAvatar}
+                  hidden
+                  onChange={handleAvatarUpload}
+                  type="file"
+                />
+              </label>
             </div>
             {isLoading ? (
               <Skeleton height={24} width={160} />

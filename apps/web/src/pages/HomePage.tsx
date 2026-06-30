@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
-import { useMyLists } from '../features/lists/api';
+import { useMyLists, useSharedLists } from '../features/lists/api';
 import { useAuth } from '../shared/auth';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import type { WishlistSummary } from '../types/models';
@@ -52,6 +52,8 @@ export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: lists, isLoading } = useMyLists();
+  const { data: shared } = useSharedLists();
+  const sharedLists = shared ?? [];
   const firstName =
     (user?.user_metadata?.name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
   const myLists = (lists ?? []).slice(0, 6);
@@ -155,6 +157,34 @@ export function HomePage() {
             )}
           </section>
         )}
+
+        {sharedLists.length > 0 ? (
+          <section className="section-block">
+            <div className="wishly-lists__head">
+              <h3 className="wishly-home-section-title">Compartilhadas comigo</h3>
+            </div>
+            <div className="wishly-shared-grid">
+              {sharedLists.map((list) => (
+                <Link
+                  key={list.id}
+                  className="wishly-shared-card"
+                  to={list.to ?? `/lists/${list.id}`}
+                >
+                  <div className="wishly-shared-card__thumb">
+                    <img alt={list.title} src={list.image} />
+                  </div>
+                  <div className="wishly-shared-card__content">
+                    <div className="wishly-shared-card__title">
+                      <h3>{list.title}</h3>
+                    </div>
+                    <span className="wishly-shared-card__count">{list.items} itens</span>
+                  </div>
+                  <MaterialIcon className="wishly-shared-card__chevron" name="chevron_right" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </main>
     </AppShell>
   );

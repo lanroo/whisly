@@ -1,25 +1,56 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { SettingsSelectRow } from '../components/SettingsSelectRow';
-import { profileUser } from '../data/mockData';
+import { useMyProfile, useUpdateProfile } from '../features/profile/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { Button, Modal, useToast } from '../shared/ui';
+import { Avatar, Button, Modal, Skeleton, useToast } from '../shared/ui';
 
 export function ProfilePage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { data: profile, isLoading } = useMyProfile();
+  const updateProfile = useUpdateProfile();
+
   const [editing, setEditing] = useState(false);
+  const [name, setName] = useState('');
+  const [handle, setHandle] = useState('');
+  const [bio, setBio] = useState('');
 
-  function comingSoon(feature: string) {
-    toast.show({ title: feature, description: 'Em breve disponível.' });
+  function openEdit() {
+    setName(profile?.name ?? '');
+    setHandle(profile?.handle ?? '');
+    setBio(profile?.bio ?? '');
+    setEditing(true);
   }
 
-  function handleSaveProfile() {
-    setEditing(false);
-    toast.show({ variant: 'success', title: 'Perfil atualizado' });
+  async function handleSaveProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!name.trim()) {
+      toast.show({ title: 'Informe seu nome' });
+      return;
+    }
+    try {
+      await updateProfile.mutateAsync({ name, handle, bio });
+      setEditing(false);
+      toast.show({ variant: 'success', title: 'Perfil atualizado' });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível salvar',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
   }
+
+  const stats = [
+    { id: 'lists', label: 'Listas', value: profile?.stats.lists ?? 0 },
+    { id: 'items', label: 'Itens', value: profile?.stats.items ?? 0 },
+    { id: 'shared', label: 'Compartilhadas', value: profile?.stats.shared ?? 0 },
+  ];
+
+  const handleLabel = profile?.handle ? `@${profile.handle}` : 'Defina seu @usuário';
 
   return (
     <AppShell
@@ -48,24 +79,29 @@ export function ProfilePage() {
         <section className="profile-hero-card">
           <div className="profile-hero">
             <div className="profile-hero__avatar">
-              <img alt={profileUser.name} src={profileUser.avatar} />
+              {profile?.avatarUrl ? (
+                <img alt={profile.name} src={profile.avatarUrl} />
+              ) : (
+                <Avatar name={profile?.name} size="lg" />
+              )}
             </div>
-            <h2>{profileUser.name}</h2>
-            <p className="profile-hero__handle">{profileUser.handle}</p>
-            <p className="profile-hero__bio">{profileUser.bio}</p>
+            {isLoading ? (
+              <Skeleton height={24} width={160} />
+            ) : (
+              <h2>{profile?.name || 'Sem nome'}</h2>
+            )}
+            <p className="profile-hero__handle">{handleLabel}</p>
+            {profile?.bio ? <p className="profile-hero__bio">{profile.bio}</p> : null}
           </div>
 
           <div className="profile-actions">
-            <Button icon="edit" onClick={() => setEditing(true)} variant="secondary">
+            <Button icon="edit" onClick={openEdit} variant="secondary">
               Editar perfil
-            </Button>
-            <Button icon="share" onClick={() => comingSoon('Compartilhar perfil')} variant="ghost">
-              Compartilhar
             </Button>
           </div>
 
           <div className="profile-stats">
-            {profileUser.stats.map((stat, index) => (
+            {stats.map((stat, index) => (
               <article key={stat.id} className={`profile-stat-card profile-stat-card--${index + 1}`}>
                 <strong>{stat.value}</strong>
                 <span>{stat.label}</span>
@@ -78,38 +114,39 @@ export function ProfilePage() {
           <h2>Atalhos</h2>
           <div className="settings-card">
             <SettingsSelectRow icon="list_alt" title="Minhas listas" to="/lists" />
-            <SettingsSelectRow icon="group" title="Colaboradores" to="/collaborators" />
+            <SettingsSelectRow icon="explore" title="Explorar" to="/explore" />
             <SettingsSelectRow icon="notifications" title="Atividade" to="/activity" />
           </div>
         </section>
       </main>
 
       <Modal onClose={() => setEditing(false)} open={editing} title="Editar perfil">
-        <form
-          className="profile-edit-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            handleSaveProfile();
-          }}
-        >
+        <form className="profile-edit-form" onSubmit={handleSaveProfile}>
           <label className="profile-edit-field">
             <span>Nome</span>
-            <input defaultValue={profileUser.name} type="text" />
+            <input onChange={(e) => setName(e.target.value)} type="text" value={name} />
           </label>
           <label className="profile-edit-field">
-            <span>Usuário</span>
-            <input defaultValue={profileUser.handle} type="text" />
+            <span>Usuário (@)</span>
+            <input
+              onChange={(e) => setHandle(e.target.value)}
+              placeholder="ex: lanna"
+              type="text"
+              value={handle}
+            />
           </label>
           <label className="profile-edit-field">
             <span>Bio</span>
-            <textarea defaultValue={profileUser.bio} rows={3} />
+            <textarea onChange={(e) => setBio(e.target.value)} rows={3} value={bio} />
           </label>
 
           <div className="profile-edit-actions">
-            <Button onClick={() => setEditing(false)} variant="ghost">
+            <Button onClick={() => setEditing(false)} type="button" variant="ghost">
               Cancelar
             </Button>
-            <Button type="submit">Salvar</Button>
+            <Button disabled={updateProfile.isPending} type="submit">
+              {updateProfile.isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
           </div>
         </form>
       </Modal>

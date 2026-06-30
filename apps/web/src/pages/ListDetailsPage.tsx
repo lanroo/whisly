@@ -50,7 +50,7 @@ export function ListDetailsPage() {
   const updateList = useUpdateList(listId);
   const deleteList = useDeleteList();
   const addCollaborator = useAddCollaborator(listId);
-  const removeCollaborator = useRemoveCollaborator(listId);
+  const removeCollaborator = useRemoveCollaborator();
   const reserveItem = useReserveItem(listId ?? '');
   const unreserveItem = useUnreserveItem(listId ?? '');
 

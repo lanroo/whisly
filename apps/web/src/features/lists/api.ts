@@ -440,6 +440,64 @@ export function useCollaborators(listId: string | undefined) {
   });
 }
 
+export interface ListCollaborator extends Collaborator {
+  listId: string;
+  listTitle: string;
+}
+
+type MyCollabRow = {
+  id: string;
+  user_id: string;
+  role: CollaboratorRole;
+  lists: { id: string; title: string; owner_id: string } | null;
+};
+
+async function fetchMyListCollaborators(userId: string): Promise<ListCollaborator[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('collaborators')
+    .select('id, user_id, role, lists!inner(id, title, owner_id)')
+    .eq('lists.owner_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  const rows = (data ?? []) as unknown as MyCollabRow[];
+  const ids = [...new Set(rows.map((r) => r.user_id))];
+
+  const profiles = new Map<string, { name: string; handle: string | null; avatarUrl: string | null }>();
+  if (ids.length > 0) {
+    const { data: profs, error: pErr } = await supabase
+      .from('profiles')
+      .select('id, name, handle, avatar_url')
+      .in('id', ids);
+    if (pErr) throw pErr;
+    for (const p of profs ?? []) {
+      profiles.set(p.id, { name: p.name ?? 'Usuário', handle: p.handle, avatarUrl: p.avatar_url });
+    }
+  }
+
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    role: r.role,
+    name: profiles.get(r.user_id)?.name ?? 'Usuário',
+    handle: profiles.get(r.user_id)?.handle ?? null,
+    avatarUrl: profiles.get(r.user_id)?.avatarUrl ?? null,
+    listId: r.lists?.id ?? '',
+    listTitle: r.lists?.title ?? '',
+  }));
+}
+
+/** Pessoas com quem o usuário compartilha (colaboradores das listas que ele é dono). */
+export function useMyListCollaborators() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['collaborators', 'mine', user?.id],
+    queryFn: () => fetchMyListCollaborators(user!.id),
+    enabled: Boolean(user),
+  });
+}
+
 function normalizeHandle(handle: string): string {
   return handle.trim().replace(/^@+/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
@@ -487,10 +545,10 @@ async function removeCollaborator(collaboratorId: string): Promise<void> {
 }
 
 /** Remove um colaborador (a RLS garante: dono da lista ou o próprio). */
-export function useRemoveCollaborator(listId: string | undefined) {
+export function useRemoveCollaborator() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (collaboratorId: string) => removeCollaborator(collaboratorId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators', listId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators'] }),
   });
 }

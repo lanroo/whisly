@@ -1,13 +1,43 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
-import { collaborators } from '../data/mockData';
+import {
+  useMyListCollaborators,
+  useRemoveCollaborator,
+  useSharedLists,
+} from '../features/lists/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { Button, useToast } from '../shared/ui';
+import { Avatar, EmptyState, Skeleton, useToast } from '../shared/ui';
+
+const ROLE_LABEL: Record<string, string> = {
+  owner: 'Dono',
+  editor: 'Editor',
+  viewer: 'Leitor',
+};
 
 export function CollaboratorsPage() {
-  const navigate = useNavigate();
   const toast = useToast();
+  const { data: shared, isLoading: loadingShared } = useSharedLists();
+  const { data: people, isLoading: loadingPeople } = useMyListCollaborators();
+  const removeCollaborator = useRemoveCollaborator();
+
+  const sharedLists = shared ?? [];
+  const collaborators = people ?? [];
+  const loading = loadingShared || loadingPeople;
+  const isEmpty = !loading && sharedLists.length === 0 && collaborators.length === 0;
+
+  async function handleRemove(id: string, name: string) {
+    try {
+      await removeCollaborator.mutateAsync(id);
+      toast.show({ title: `${name} removido(a)` });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível remover',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
 
   return (
     <AppShell
@@ -19,9 +49,9 @@ export function CollaboratorsPage() {
     >
       <header className="collaborators-topbar">
         <div className="collaborators-topbar__inner">
-          <button aria-label="Menu" className="icon-button" type="button">
-            <MaterialIcon name="menu" />
-          </button>
+          <Link aria-label="Voltar" className="icon-button" to="/lists">
+            <MaterialIcon name="chevron_left" />
+          </Link>
           <h1>Colaboradores</h1>
           <Link aria-label="Notificações" className="icon-button" to="/activity">
             <MaterialIcon name="notifications" />
@@ -30,65 +60,68 @@ export function CollaboratorsPage() {
       </header>
 
       <main className="page collaborators-page">
-        <label className="search-box collaborators-search">
-          <MaterialIcon name="search" />
-          <input placeholder="Convidar amigos..." type="text" />
-        </label>
+        {loading ? (
+          <div className="collaborators-card">
+            <Skeleton height={64} width="100%" />
+            <Skeleton height={64} width="100%" />
+          </div>
+        ) : isEmpty ? (
+          <EmptyState
+            description="Compartilhe uma lista pelo @usuário para colaborar, ou peça para alguém compartilhar com você."
+            icon="group"
+            title="Nenhuma colaboração ainda"
+          />
+        ) : (
+          <>
+            {sharedLists.length > 0 ? (
+              <section className="collaborators-section">
+                <h2 className="collaborators-section__title">Compartilhadas comigo</h2>
+                <div className="collaborators-card">
+                  {sharedLists.map((list) => (
+                    <Link key={list.id} className="collaborator-row" to={`/lists/${list.id}`}>
+                      <div className="collaborator-avatar collaborator-avatar--list">
+                        <img alt={list.title} src={list.image} />
+                      </div>
+                      <div className="collaborator-row__copy">
+                        <h2>{list.title}</h2>
+                        <p>{list.items} itens</p>
+                      </div>
+                      <MaterialIcon className="collaborator-row__more" name="chevron_right" />
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
-        <button
-          className="collaborators-page__add"
-          onClick={() =>
-            toast.show({
-              variant: 'success',
-              title: 'Convite enviado',
-              description: 'O convite de colaboração foi enviado.',
-            })
-          }
-          type="button"
-        >
-          <MaterialIcon name="person_add" />
-          <span>Adicionar colaborador</span>
-        </button>
-
-        <section className="collaborators-card">
-          {collaborators.map((collaborator) => (
-            <article key={collaborator.id} className="collaborator-row">
-              <div className={`collaborator-avatar ${collaborator.initial ? 'is-initial' : ''}`.trim()}>
-                {collaborator.avatar ? (
-                  <img alt={collaborator.name} src={collaborator.avatar} />
-                ) : (
-                  <span>{collaborator.initial}</span>
-                )}
-              </div>
-
-              <div className="collaborator-row__copy">
-                <h2>{collaborator.name}</h2>
-                <p>{collaborator.role}</p>
-              </div>
-
-              <button
-                aria-label={`Mais opções para ${collaborator.name}`}
-                className="icon-button collaborator-row__more"
-                onClick={() => toast.show({ title: collaborator.name, description: 'Opções em breve.' })}
-                type="button"
-              >
-                <MaterialIcon name="more_horiz" />
-              </button>
-            </article>
-          ))}
-        </section>
-
-        <Button
-          className="collaborators-page__leave"
-          fullWidth
-          onClick={() => {
-            toast.show({ variant: 'warning', title: 'Você saiu da lista' });
-            navigate('/lists');
-          }}
-          variant="danger"
-        >
-          Sair da lista
-        </Button>
+            {collaborators.length > 0 ? (
+              <section className="collaborators-section">
+                <h2 className="collaborators-section__title">Nas minhas listas</h2>
+                <div className="collaborators-card">
+                  {collaborators.map((c) => (
+                    <article key={c.id} className="collaborator-row">
+                      <Avatar name={c.name} size="md" src={c.avatarUrl ?? undefined} />
+                      <div className="collaborator-row__copy">
+                        <h2>{c.name}</h2>
+                        <p>
+                          {ROLE_LABEL[c.role] ?? c.role} · {c.listTitle}
+                        </p>
+                      </div>
+                      <button
+                        aria-label={`Remover ${c.name}`}
+                        className="icon-button collaborator-row__more"
+                        disabled={removeCollaborator.isPending}
+                        onClick={() => handleRemove(c.id, c.name)}
+                        type="button"
+                      >
+                        <MaterialIcon name="close" />
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </>
+        )}
       </main>
     </AppShell>
   );

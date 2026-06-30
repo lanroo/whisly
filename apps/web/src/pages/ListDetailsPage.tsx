@@ -14,6 +14,8 @@ import {
   useList,
   useListItems,
   useRemoveCollaborator,
+  useReserveItem,
+  useUnreserveItem,
   useUpdateList,
   type CollaboratorRole,
   type ListItem,
@@ -48,7 +50,9 @@ export function ListDetailsPage() {
   const updateList = useUpdateList(listId);
   const deleteList = useDeleteList();
   const addCollaborator = useAddCollaborator(listId);
-  const removeCollaborator = useRemoveCollaborator(listId);
+  const removeCollaborator = useRemoveCollaborator();
+  const reserveItem = useReserveItem(listId ?? '');
+  const unreserveItem = useUnreserveItem(listId ?? '');
 
   // Form de adicionar item
   const [url, setUrl] = useState('');
@@ -151,6 +155,24 @@ export function ListDetailsPage() {
       toast.show({
         variant: 'error',
         title: 'Não foi possível remover',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  async function handleReserve(item: ListItem) {
+    try {
+      if (item.reservation) {
+        await unreserveItem.mutateAsync(item.reservation.id);
+        toast.show({ title: 'Reserva cancelada' });
+      } else {
+        await reserveItem.mutateAsync(item.id);
+        toast.show({ variant: 'success', title: 'Presente reservado 🎁' });
+      }
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível reservar',
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -345,11 +367,15 @@ export function ListDetailsPage() {
           <ul className="item-list">
             {list_items.map((item) => (
               <ItemRow
+                canReserve={!isOwner}
+                currentUserId={user?.id}
                 item={item}
                 key={item.id}
                 mine={canEdit && (isOwner || item.addedBy === user?.id)}
                 onDelete={() => handleDelete(item.id)}
+                onReserve={() => handleReserve(item)}
                 removing={deleteItem.isPending}
+                reserving={reserveItem.isPending || unreserveItem.isPending}
               />
             ))}
           </ul>
@@ -479,12 +505,22 @@ function ItemRow({
   mine,
   onDelete,
   removing,
+  canReserve,
+  currentUserId,
+  onReserve,
+  reserving,
 }: {
   item: ListItem;
   mine: boolean;
   onDelete: () => void;
   removing: boolean;
+  canReserve: boolean;
+  currentUserId: string | undefined;
+  onReserve: () => void;
+  reserving: boolean;
 }) {
+  const reservedByMe = item.reservation?.reservedBy === currentUserId;
+  const reservedByOther = Boolean(item.reservation) && !reservedByMe;
   const inner = (
     <>
       {item.imageUrl ? (
@@ -512,6 +548,17 @@ function ItemRow({
       ) : (
         <div className="item-card__link">{inner}</div>
       )}
+      {canReserve ? (
+        <button
+          className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+          disabled={reserving || reservedByOther}
+          onClick={onReserve}
+          type="button"
+        >
+          <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+          {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
+        </button>
+      ) : null}
       {mine ? (
         <button
           aria-label="Remover produto"

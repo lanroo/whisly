@@ -183,7 +183,15 @@ export interface ListItem {
   imageUrl: string | null;
   /** Quem adicionou — usado para liberar editar/remover só para o autor. */
   addedBy: string | null;
+  /** Reserva visível (escondida do dono = surpresa). null se não reservado/visível. */
+  reservation: { id: string; reservedBy: string } | null;
 }
+
+type ReservationEmbed = { id: string; reserved_by: string };
+type ItemRowWithReservation = ItemRow & {
+  // PostgREST devolve objeto (relação 1-para-1 por unique(item_id)) ou array.
+  reservations?: ReservationEmbed | ReservationEmbed[] | null;
+};
 
 export interface ListSummary {
   id: string;
@@ -193,7 +201,8 @@ export interface ListSummary {
   ownerId: string;
 }
 
-function mapItem(row: ItemRow): ListItem {
+function mapItem(row: ItemRowWithReservation): ListItem {
+  const resv = Array.isArray(row.reservations) ? row.reservations[0] : row.reservations;
   return {
     id: row.id,
     title: row.title,
@@ -202,6 +211,7 @@ function mapItem(row: ItemRow): ListItem {
     url: row.url,
     imageUrl: row.image_url,
     addedBy: row.added_by,
+    reservation: resv ? { id: resv.id, reservedBy: resv.reserved_by } : null,
   };
 }
 
@@ -237,20 +247,22 @@ async function fetchItems(listId: string): Promise<ListItem[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('list_items')
-    .select('*')
+    .select('*, reservations(id, reserved_by)')
     .eq('list_id', listId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data as ItemRow[]).map(mapItem);
+  return (data as unknown as ItemRowWithReservation[]).map(mapItem);
 }
 
-/** Itens de uma lista. */
+/** Itens de uma lista. Inclui reservas (dependem de auth.uid()), por isso
+ * espera a sessão e re-busca por usuário. */
 export function useListItems(listId: string | undefined) {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['list-items', listId],
+    queryKey: ['list-items', listId, user?.id],
     queryFn: () => fetchItems(listId!),
-    enabled: Boolean(listId),
+    enabled: Boolean(listId && user),
   });
 }
 
@@ -301,6 +313,44 @@ export function useDeleteItem(listId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (itemId: string) => deleteItem(itemId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+// ===== Reservas de presente (escondidas do dono) =====
+
+async function reserveItem(itemId: string, userId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase
+    .from('reservations')
+    .insert({ item_id: itemId, reserved_by: userId });
+  if (error) {
+    if (error.code === '23505') throw new Error('Este presente já foi reservado.');
+    throw error;
+  }
+}
+
+/** Reserva um item (presente) — invisível para o dono da lista. */
+export function useReserveItem(listId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: (itemId: string) => reserveItem(itemId, user!.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+async function unreserveItem(reservationId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase.from('reservations').delete().eq('id', reservationId);
+  if (error) throw error;
+}
+
+/** Cancela a própria reserva (RLS: só o autor da reserva). */
+export function useUnreserveItem(listId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (reservationId: string) => unreserveItem(reservationId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
   });
 }
@@ -390,6 +440,64 @@ export function useCollaborators(listId: string | undefined) {
   });
 }
 
+export interface ListCollaborator extends Collaborator {
+  listId: string;
+  listTitle: string;
+}
+
+type MyCollabRow = {
+  id: string;
+  user_id: string;
+  role: CollaboratorRole;
+  lists: { id: string; title: string; owner_id: string } | null;
+};
+
+async function fetchMyListCollaborators(userId: string): Promise<ListCollaborator[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('collaborators')
+    .select('id, user_id, role, lists!inner(id, title, owner_id)')
+    .eq('lists.owner_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  const rows = (data ?? []) as unknown as MyCollabRow[];
+  const ids = [...new Set(rows.map((r) => r.user_id))];
+
+  const profiles = new Map<string, { name: string; handle: string | null; avatarUrl: string | null }>();
+  if (ids.length > 0) {
+    const { data: profs, error: pErr } = await supabase
+      .from('profiles')
+      .select('id, name, handle, avatar_url')
+      .in('id', ids);
+    if (pErr) throw pErr;
+    for (const p of profs ?? []) {
+      profiles.set(p.id, { name: p.name ?? 'Usuário', handle: p.handle, avatarUrl: p.avatar_url });
+    }
+  }
+
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    role: r.role,
+    name: profiles.get(r.user_id)?.name ?? 'Usuário',
+    handle: profiles.get(r.user_id)?.handle ?? null,
+    avatarUrl: profiles.get(r.user_id)?.avatarUrl ?? null,
+    listId: r.lists?.id ?? '',
+    listTitle: r.lists?.title ?? '',
+  }));
+}
+
+/** Pessoas com quem o usuário compartilha (colaboradores das listas que ele é dono). */
+export function useMyListCollaborators() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['collaborators', 'mine', user?.id],
+    queryFn: () => fetchMyListCollaborators(user!.id),
+    enabled: Boolean(user),
+  });
+}
+
 function normalizeHandle(handle: string): string {
   return handle.trim().replace(/^@+/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
@@ -437,10 +545,10 @@ async function removeCollaborator(collaboratorId: string): Promise<void> {
 }
 
 /** Remove um colaborador (a RLS garante: dono da lista ou o próprio). */
-export function useRemoveCollaborator(listId: string | undefined) {
+export function useRemoveCollaborator() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (collaboratorId: string) => removeCollaborator(collaboratorId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators', listId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators'] }),
   });
 }

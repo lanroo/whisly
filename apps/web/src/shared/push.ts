@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+const VAPID_PUBLIC_KEY =
+  (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ??
+  'BDQez_OG3IrAPAd7Kdo6X8XMmf7SfzPoPKUG0KNS-4Z1ERwN11Ww623m681iXGWmkV4CDzvmTtzzIbv-GzW3w8E';
 
 /** Web Push é suportado pelo navegador? */
 export function isPushSupported(): boolean {

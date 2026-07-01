@@ -1628,6 +1628,10 @@ input {
   opacity: 0.26;
 }
 
+.create-list-cover__art.has-image img {
+  opacity: 1;
+}
+
 .create-list-cover__overlay {
   position: absolute;
   inset: 0;
@@ -3180,7 +3184,8 @@ input {
   gap: 6px;
 }
 
-.profile-edit-field span {
+.profile-edit-field span,
+.profile-edit-field__label {
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--muted-2);
@@ -3189,19 +3194,28 @@ input {
 .profile-edit-field input,
 .profile-edit-field textarea {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--surface-strong);
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: #f2f2f7;
   color: var(--text);
   font: inherit;
   resize: vertical;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .profile-edit-field input:focus,
 .profile-edit-field textarea:focus {
-  border-color: var(--accent);
+  border-color: rgba(36, 41, 65, 0.3);
+  box-shadow: 0 0 0 4px rgba(36, 41, 65, 0.06);
   outline: none;
+}
+
+.edit-list-privacy {
+  display: grid;
+  gap: 8px;
 }
 
 .profile-edit-actions {
@@ -3739,9 +3753,15 @@ input {
   list-style: none;
 }
 
+.item-list {
+  margin-top: 6px;
+}
+
 .item-card {
   position: relative;
   display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .item-card__link {
@@ -3750,7 +3770,7 @@ input {
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
-  padding: var(--space-3) 44px var(--space-3) var(--space-3);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
   background: var(--surface-strong);
@@ -3762,10 +3782,17 @@ a.item-card__link:hover {
   border-color: var(--accent);
 }
 
-.item-card__thumb {
+.item-card__media {
+  position: relative;
   flex: 0 0 64px;
   width: 64px;
   height: 64px;
+}
+
+.item-card__thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: var(--radius-sm);
   object-fit: cover;
   background: var(--surface-low);
@@ -3775,6 +3802,45 @@ a.item-card__link:hover {
   display: grid;
   place-items: center;
   color: var(--muted);
+}
+
+.item-card__badge {
+  position: absolute;
+  top: -8px;
+  left: 4px;
+  z-index: 1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+}
+
+button.item-card__badge {
+  cursor: pointer;
+}
+
+.item-card__badge--urgent {
+  color: #7a120b;
+  background: var(--danger-bg);
+}
+
+.item-card__badge--desired {
+  color: #fff;
+  background: var(--success-bg);
+}
+
+.item-card__badge--later {
+  color: #fff;
+  background: var(--info-bg);
+}
+
+.item-card__badge--bought {
+  color: #46464d;
+  background: #dcd9db;
 }
 
 .item-card__body {
@@ -3817,15 +3883,18 @@ a.item-card__link:hover {
   color: var(--muted);
 }
 
+.item-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
 .item-card__delete {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
   display: grid;
   place-items: center;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   color: var(--danger);
 }
@@ -3866,13 +3935,6 @@ button.explore-product-card {
   font-size: 13px;
 }
 
-/* Detalhe da lista: ações + leitura */
-.list-detail-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 12px;
-}
-
 .list-detail-readonly {
   display: flex;
   align-items: center;
@@ -3903,15 +3965,8 @@ button.explore-product-card {
   align-items: stretch;
 }
 
-.share-form__role {
+.share-form__role-chips {
   flex: 1;
-  min-width: 0;
-  padding: 0 12px;
-  border-radius: 12px;
-  background: #f2f2f7;
-  border: 1px solid transparent;
-  color: var(--text, #242941);
-  font: inherit;
 }
 
 .share-list {
@@ -3976,17 +4031,50 @@ button.explore-product-card {
 
 .list-detail-actions {
   display: flex;
-  gap: 8px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.list-detail-actions .ui-button {
-  flex: 1;
+.list-detail-actions__icons {
+  display: flex;
+  gap: 6px;
+  flex: none;
 }
 
-.icon-button--danger {
+.list-detail-actions__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: #f2f2f7;
+  color: #46464d;
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.list-detail-actions__icon:hover {
+  background: #e7e7ee;
+}
+
+.list-detail-actions__icon:active {
+  transform: scale(0.94);
+}
+
+.list-detail-actions__icon .material-symbols-outlined {
+  font-size: 19px;
+}
+
+.list-detail-actions__icon--danger {
   color: #c93d3d;
+}
+
+.list-detail-actions__icon--danger:hover {
+  background: rgba(201, 61, 61, 0.12);
 }
 
 .item-add__upload {
@@ -4323,4 +4411,73 @@ a.collaborator-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+/* ============================================================
+   Chips genéricos (status do item, papel do colaborador)
+   ============================================================ */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #f2f2f7;
+  color: #46464d;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.chip.is-active {
+  background: #242941;
+  color: #fff;
+}
+
+.chip--urgent.is-active {
+  background: var(--danger-bg);
+  color: #7a120b;
+}
+
+.chip--desired.is-active {
+  background: var(--success-bg);
+  color: #fff;
+}
+
+.chip--later.is-active {
+  background: var(--info-bg);
+  color: #fff;
+}
+
+.chip--bought.is-active {
+  background: #dcd9db;
+  color: #46464d;
+}
+
+.additem-status {
+  display: grid;
+  gap: 8px;
+}
+
+.additem-status__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+.status-edit {
+  display: grid;
+  gap: 18px;
+}
+
+/* Buscas inline (dentro da lista / minhas listas) */
+.list-item-search,
+.lists-page__search {
+  margin-bottom: 8px;
 }

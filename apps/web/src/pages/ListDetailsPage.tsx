@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { TopBar } from '../components/TopBar';
 import {
@@ -16,12 +17,15 @@ import {
   useRemoveCollaborator,
   useReserveItem,
   useUnreserveItem,
+  useUpdateItemStatus,
   useUpdateList,
   type CollaboratorRole,
+  type ItemStatus,
   type ListItem,
   type ListPrivacy,
 } from '../features/lists/api';
 import { useAuth } from '../shared/auth';
+import { PRIVACY_CHOICES } from '../shared/config/privacy';
 import { Avatar, Button, EmptyState, Modal, Skeleton, useToast } from '../shared/ui';
 
 const ROLE_LABEL: Record<CollaboratorRole, string> = {
@@ -30,11 +34,16 @@ const ROLE_LABEL: Record<CollaboratorRole, string> = {
   viewer: 'Leitor',
 };
 
-const PRIVACY_OPTIONS: { value: ListPrivacy; label: string }[] = [
-  { value: 'private', label: 'Privada' },
-  { value: 'collaborative', label: 'Colaborativa' },
-  { value: 'public', label: 'Pública' },
+const STATUS_OPTIONS: { value: ItemStatus; label: string }[] = [
+  { value: 'urgent', label: 'Urgente' },
+  { value: 'desired', label: 'Desejado' },
+  { value: 'later', label: 'Pode esperar' },
+  { value: 'bought', label: 'Comprado' },
 ];
+
+function statusLabel(status: ItemStatus): string {
+  return STATUS_OPTIONS.find((option) => option.value === status)?.label ?? status;
+}
 
 export function ListDetailsPage() {
   const { listId } = useParams<{ listId: string }>();
@@ -53,6 +62,7 @@ export function ListDetailsPage() {
   const removeCollaborator = useRemoveCollaborator();
   const reserveItem = useReserveItem(listId ?? '');
   const unreserveItem = useUnreserveItem(listId ?? '');
+  const updateItemStatus = useUpdateItemStatus(listId ?? '');
 
   // Form de adicionar item (modal)
   const [addOpen, setAddOpen] = useState(false);
@@ -61,9 +71,18 @@ export function ListDetailsPage() {
   const [price, setPrice] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [store, setStore] = useState<string | null>(null);
+  const [status, setStatus] = useState<ItemStatus>('desired');
   const [capturing, setCapturing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const lastCaptured = useRef('');
+
+  // Editar status de um item existente
+  const [statusItem, setStatusItem] = useState<ListItem | null>(null);
+  const [editingStatus, setEditingStatus] = useState<ItemStatus>('desired');
+
+  // Busca dentro da lista
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState('');
 
   // Compartilhar
   const [shareOpen, setShareOpen] = useState(false);
@@ -143,6 +162,7 @@ export function ListDetailsPage() {
     setPrice('');
     setImage(null);
     setStore(null);
+    setStatus('desired');
     lastCaptured.current = '';
   }
 
@@ -153,13 +173,33 @@ export function ListDetailsPage() {
       return;
     }
     try {
-      await addItem.mutateAsync({ title, url, price, imageUrl: image, store });
+      await addItem.mutateAsync({ title, url, price, imageUrl: image, store, status });
       closeForm();
       toast.show({ variant: 'success', title: 'Produto adicionado' });
     } catch (error) {
       toast.show({
         variant: 'error',
         title: 'Não foi possível adicionar',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  function openStatusEdit(item: ListItem) {
+    setStatusItem(item);
+    setEditingStatus(item.status);
+  }
+
+  async function handleSaveStatus() {
+    if (!statusItem) return;
+    try {
+      await updateItemStatus.mutateAsync({ itemId: statusItem.id, status: editingStatus });
+      setStatusItem(null);
+      toast.show({ variant: 'success', title: 'Status atualizado' });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível atualizar',
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -267,37 +307,66 @@ export function ListDetailsPage() {
     }
   }
 
-  const list_items = items ?? [];
+  const list_items = useMemo(() => items ?? [], [items]);
   const collabList = collaborators ?? [];
+
+  const filteredItems = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return list_items;
+    return list_items.filter(
+      (item) =>
+        item.title.toLowerCase().includes(term) || (item.store ?? '').toLowerCase().includes(term),
+    );
+  }, [list_items, search]);
 
   return (
     <AppShell className="wishly-list-shell" showFab={false}>
-      <TopBar backTo="/lists" title={list?.title ?? 'Lista'} />
+      <TopBar
+        backTo="/lists"
+        onRight={() => setSearchOpen((open) => !open)}
+        rightIcon={searchOpen ? 'close' : 'search'}
+        title={list?.title ?? 'Lista'}
+      />
 
       <main className="page list-detail-page">
         {list?.description ? <p className="list-detail-desc">{list.description}</p> : null}
+
+        {searchOpen ? (
+          <label className="search-box list-item-search">
+            <MaterialIcon name="search" />
+            <input
+              autoFocus
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar nesta lista..."
+              type="text"
+              value={search}
+            />
+          </label>
+        ) : null}
 
         {isOwner ? (
           <div className="list-detail-actions">
             <Button icon="group_add" onClick={() => setShareOpen(true)} variant="secondary">
               Compartilhar{collabList.length > 0 ? ` (${collabList.length})` : ''}
             </Button>
-            <button
-              aria-label="Editar lista"
-              className="icon-button"
-              onClick={openEdit}
-              type="button"
-            >
-              <MaterialIcon name="edit" />
-            </button>
-            <button
-              aria-label="Excluir lista"
-              className="icon-button icon-button--danger"
-              onClick={() => setConfirmDelete(true)}
-              type="button"
-            >
-              <MaterialIcon name="delete" />
-            </button>
+            <div className="list-detail-actions__icons">
+              <button
+                aria-label="Editar lista"
+                className="list-detail-actions__icon"
+                onClick={openEdit}
+                type="button"
+              >
+                <MaterialIcon name="edit" />
+              </button>
+              <button
+                aria-label="Excluir lista"
+                className="list-detail-actions__icon list-detail-actions__icon--danger"
+                onClick={() => setConfirmDelete(true)}
+                type="button"
+              >
+                <MaterialIcon name="delete" />
+              </button>
+            </div>
           </div>
         ) : null}
 
@@ -332,16 +401,19 @@ export function ListDetailsPage() {
             icon="shopping_bag"
             title="Nenhum produto ainda"
           />
+        ) : filteredItems.length === 0 ? (
+          <p className="explore-empty-hint">Nenhum produto encontrado para "{search}".</p>
         ) : (
           <ul className="item-list">
-            {list_items.map((item) => (
+            {filteredItems.map((item) => (
               <ItemRow
-                canReserve={!isOwner}
+                canReserve={!isOwner && item.addedBy !== user?.id}
                 currentUserId={user?.id}
                 item={item}
                 key={item.id}
                 mine={canEdit && (isOwner || item.addedBy === user?.id)}
                 onDelete={() => handleDelete(item.id)}
+                onEditStatus={() => openStatusEdit(item)}
                 onReserve={() => handleReserve(item)}
                 removing={deleteItem.isPending}
                 reserving={reserveItem.isPending || unreserveItem.isPending}
@@ -429,6 +501,22 @@ export function ListDetailsPage() {
             </label>
           </div>
 
+          <div className="additem-status">
+            <span className="additem-status__label">Status</span>
+            <div className="chip-group">
+              {STATUS_OPTIONS.map((option) => (
+                <button
+                  className={`chip chip--${option.value} ${status === option.value ? 'is-active' : ''}`.trim()}
+                  key={option.value}
+                  onClick={() => setStatus(option.value)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <button
             className="primary-button primary-button--full"
             disabled={addItem.isPending}
@@ -437,6 +525,26 @@ export function ListDetailsPage() {
             {addItem.isPending ? 'Adicionando...' : 'Salvar item'}
           </button>
         </form>
+      </Modal>
+
+      <Modal onClose={() => setStatusItem(null)} open={Boolean(statusItem)} title="Status do item">
+        <div className="status-edit">
+          <div className="chip-group">
+            {STATUS_OPTIONS.map((option) => (
+              <button
+                className={`chip chip--${option.value} ${editingStatus === option.value ? 'is-active' : ''}`.trim()}
+                key={option.value}
+                onClick={() => setEditingStatus(option.value)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <Button disabled={updateItemStatus.isPending} fullWidth onClick={handleSaveStatus}>
+            {updateItemStatus.isPending ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
       </Modal>
 
       <Modal onClose={() => setShareOpen(false)} open={shareOpen} title="Compartilhar lista">
@@ -451,14 +559,22 @@ export function ListDetailsPage() {
             />
           </label>
           <div className="share-form__row">
-            <select
-              className="share-form__role"
-              onChange={(e) => setShareRole(e.target.value as CollaboratorRole)}
-              value={shareRole}
-            >
-              <option value="editor">Editor (pode adicionar itens)</option>
-              <option value="viewer">Leitor (só visualiza)</option>
-            </select>
+            <div className="chip-group share-form__role-chips">
+              <button
+                className={`chip ${shareRole === 'editor' ? 'is-active' : ''}`.trim()}
+                onClick={() => setShareRole('editor')}
+                type="button"
+              >
+                Editor
+              </button>
+              <button
+                className={`chip ${shareRole === 'viewer' ? 'is-active' : ''}`.trim()}
+                onClick={() => setShareRole('viewer')}
+                type="button"
+              >
+                Leitor
+              </button>
+            </div>
             <Button disabled={addCollaborator.isPending} type="submit">
               {addCollaborator.isPending ? '...' : 'Adicionar'}
             </Button>
@@ -508,19 +624,23 @@ export function ListDetailsPage() {
               value={editDesc}
             />
           </label>
-          <label className="profile-edit-field">
-            <span>Privacidade</span>
-            <select
-              onChange={(e) => setEditPrivacy(e.target.value as ListPrivacy)}
-              value={editPrivacy}
-            >
-              {PRIVACY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
+          <div className="edit-list-privacy">
+            <span className="profile-edit-field__label">Privacidade</span>
+            <div className="create-list-privacy__card">
+              {PRIVACY_CHOICES.map((option) => (
+                <CreateListPrivacyOption
+                  checked={editPrivacy === option.value}
+                  description={option.description}
+                  icon={option.icon}
+                  key={option.value}
+                  name="edit-list-privacy"
+                  onChange={(value) => setEditPrivacy(value as ListPrivacy)}
+                  title={option.title}
+                  value={option.value}
+                />
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
           <div className="profile-edit-actions">
             <Button onClick={() => setEditOpen(false)} type="button" variant="ghost">
               Cancelar
@@ -566,6 +686,7 @@ function ItemRow({
   currentUserId,
   onReserve,
   reserving,
+  onEditStatus,
 }: {
   item: ListItem;
   mine: boolean;
@@ -575,18 +696,21 @@ function ItemRow({
   currentUserId: string | undefined;
   onReserve: () => void;
   reserving: boolean;
+  onEditStatus: () => void;
 }) {
   const reservedByMe = item.reservation?.reservedBy === currentUserId;
   const reservedByOther = Boolean(item.reservation) && !reservedByMe;
   const inner = (
     <>
-      {item.imageUrl ? (
-        <img alt="" className="item-card__thumb" src={item.imageUrl} />
-      ) : (
-        <div className="item-card__thumb item-card__thumb--empty">
-          <MaterialIcon name="image" />
-        </div>
-      )}
+      <div className="item-card__media">
+        {item.imageUrl ? (
+          <img alt="" className="item-card__thumb" src={item.imageUrl} />
+        ) : (
+          <div className="item-card__thumb item-card__thumb--empty">
+            <MaterialIcon name="image" />
+          </div>
+        )}
+      </div>
       <div className="item-card__body">
         {item.store ? <span className="item-card__store">{item.store}</span> : null}
         <h3 className="item-card__title">{item.title}</h3>
@@ -605,28 +729,45 @@ function ItemRow({
       ) : (
         <div className="item-card__link">{inner}</div>
       )}
-      {canReserve ? (
-        <button
-          className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
-          disabled={reserving || reservedByOther}
-          onClick={onReserve}
-          type="button"
-        >
-          <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
-          {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
-        </button>
-      ) : null}
+
       {mine ? (
         <button
-          aria-label="Remover produto"
-          className="item-card__delete"
-          disabled={removing}
-          onClick={onDelete}
+          className={`item-card__badge item-card__badge--${item.status}`}
+          onClick={onEditStatus}
           type="button"
         >
-          <MaterialIcon name="delete" />
+          {statusLabel(item.status)}
         </button>
-      ) : null}
+      ) : (
+        <span className={`item-card__badge item-card__badge--${item.status}`}>
+          {statusLabel(item.status)}
+        </span>
+      )}
+
+      <div className="item-card__actions">
+        {canReserve ? (
+          <button
+            className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+            disabled={reserving || reservedByOther}
+            onClick={onReserve}
+            type="button"
+          >
+            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+            {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
+          </button>
+        ) : null}
+        {mine ? (
+          <button
+            aria-label="Remover produto"
+            className="item-card__delete"
+            disabled={removing}
+            onClick={onDelete}
+            type="button"
+          >
+            <MaterialIcon name="delete" />
+          </button>
+        ) : null}
+      </div>
     </li>
   );
 }

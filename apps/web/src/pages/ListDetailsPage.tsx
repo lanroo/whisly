@@ -1,4 +1,4 @@
-import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -54,7 +54,8 @@ export function ListDetailsPage() {
   const reserveItem = useReserveItem(listId ?? '');
   const unreserveItem = useUnreserveItem(listId ?? '');
 
-  // Form de adicionar item
+  // Form de adicionar item (modal)
+  const [addOpen, setAddOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -62,6 +63,7 @@ export function ListDetailsPage() {
   const [store, setStore] = useState<string | null>(null);
   const [capturing, setCapturing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const lastCaptured = useRef('');
 
   // Compartilhar
   const [shareOpen, setShareOpen] = useState(false);
@@ -82,22 +84,35 @@ export function ListDetailsPage() {
   );
   const canEdit = isOwner || myRole === 'editor' || myRole === 'owner';
 
-  async function handleCapture() {
+  // Captura automática ao colar o link (debounce). Só preenche campos vazios.
+  useEffect(() => {
+    if (!addOpen) return;
     const target = url.trim();
-    if (!target) return;
-    setCapturing(true);
-    try {
-      const preview = await fetchLinkPreview(target);
-      if (preview.store) setStore(preview.store);
-      if (preview.image) setImage(preview.image);
-      if (preview.price && !price.trim()) setPrice(preview.price);
-      if (preview.title && !title.trim()) setTitle(preview.title);
-    } catch {
-      // best-effort
-    } finally {
-      setCapturing(false);
-    }
-  }
+    if (!/^https?:\/\/\S+\.\S+/.test(target) || target === lastCaptured.current) return;
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      lastCaptured.current = target;
+      setCapturing(true);
+      try {
+        const preview = await fetchLinkPreview(target);
+        if (!active) return;
+        setTitle((v) => v || preview.title || '');
+        setStore((v) => v ?? preview.store ?? null);
+        setPrice((v) => v || preview.price || '');
+        setImage((v) => v ?? preview.image ?? null);
+      } catch {
+        // best-effort
+      } finally {
+        if (active) setCapturing(false);
+      }
+    }, 700);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [url, addOpen]);
 
   async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -121,12 +136,14 @@ export function ListDetailsPage() {
     }
   }
 
-  function resetForm() {
+  function closeForm() {
+    setAddOpen(false);
     setUrl('');
     setTitle('');
     setPrice('');
     setImage(null);
     setStore(null);
+    lastCaptured.current = '';
   }
 
   async function handleAdd(event: FormEvent<HTMLFormElement>) {
@@ -137,7 +154,7 @@ export function ListDetailsPage() {
     }
     try {
       await addItem.mutateAsync({ title, url, price, imageUrl: image, store });
-      resetForm();
+      closeForm();
       toast.show({ variant: 'success', title: 'Produto adicionado' });
     } catch (error) {
       toast.show({
@@ -285,62 +302,14 @@ export function ListDetailsPage() {
         ) : null}
 
         {canEdit ? (
-          <form className="item-add" onSubmit={handleAdd}>
-            <div className="item-add__url">
-              <MaterialIcon name="link" />
-              <input
-                inputMode="url"
-                onBlur={handleCapture}
-                onChange={(event) => setUrl(event.target.value)}
-                placeholder="Cole o link de qualquer loja"
-                type="url"
-                value={url}
-              />
-            </div>
-
-            {capturing ? (
-              <p className="item-add__status">Buscando dados do link…</p>
-            ) : image ? (
-              <div className="item-add__preview">
-                <img alt="" className="item-add__preview-thumb" src={image} />
-                <div className="item-add__preview-info">
-                  {store ? <span className="item-card__store">{store}</span> : null}
-                  <label className="item-add__upload">
-                    <MaterialIcon name="upload" />
-                    {uploading ? 'Enviando...' : 'Trocar imagem'}
-                    <input accept="image/*" hidden onChange={handleImageUpload} type="file" />
-                  </label>
-                </div>
-              </div>
-            ) : (
-              <label className="item-add__upload item-add__upload--block">
-                <MaterialIcon name="add_photo_alternate" />
-                {uploading ? 'Enviando...' : 'Enviar imagem do dispositivo'}
-                <input accept="image/*" hidden onChange={handleImageUpload} type="file" />
-              </label>
-            )}
-
-            <div className="item-add__row">
-              <input
-                className="item-add__name"
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Nome do produto"
-                type="text"
-                value={title}
-              />
-              <input
-                className="item-add__price"
-                inputMode="decimal"
-                onChange={(event) => setPrice(event.target.value)}
-                placeholder="Preço"
-                type="text"
-                value={price}
-              />
-              <button className="primary-button" disabled={addItem.isPending} type="submit">
-                {addItem.isPending ? '...' : 'Adicionar'}
-              </button>
-            </div>
-          </form>
+          <button
+            className="primary-button primary-button--full additem-trigger"
+            onClick={() => setAddOpen(true)}
+            type="button"
+          >
+            <MaterialIcon name="add" />
+            Adicionar item
+          </button>
         ) : (
           <p className="list-detail-readonly">
             <MaterialIcon name="visibility" />
@@ -381,6 +350,94 @@ export function ListDetailsPage() {
           </ul>
         )}
       </main>
+
+      <Modal onClose={closeForm} open={addOpen} title="Adicionar item">
+        <form className="additem-form" onSubmit={handleAdd}>
+          <div className="additem-link">
+            <div className="ui-field__control ui-field__control--with-icon">
+              <MaterialIcon className="ui-field__icon" name="link" />
+              <input
+                autoFocus
+                inputMode="url"
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="Cole o link e os dados vêm sozinhos"
+                type="url"
+                value={url}
+              />
+            </div>
+            {capturing ? (
+              <p className="additem-hint is-loading">
+                <span className="additem-spinner" />
+                Buscando dados do produto...
+              </p>
+            ) : (
+              <p className="additem-hint">Nome, marca, preço e foto vêm automáticos ao colar o link.</p>
+            )}
+          </div>
+
+          <div className="additem-preview">
+            {image ? (
+              <img alt="Prévia do produto" src={image} />
+            ) : (
+              <div className="additem-preview-empty">
+                <MaterialIcon name="image" />
+                <span>Foto detectada do link ou envie a sua</span>
+              </div>
+            )}
+          </div>
+          <div className="additem-actions">
+            <label className="secondary-button additem-upload">
+              <MaterialIcon name="upload" />
+              {uploading ? 'Enviando...' : image ? 'Trocar foto' : 'Enviar do dispositivo'}
+              <input accept="image/*" disabled={uploading} hidden onChange={handleImageUpload} type="file" />
+            </label>
+            {image ? (
+              <button className="additem-remove" onClick={() => setImage(null)} type="button">
+                Remover
+              </button>
+            ) : null}
+          </div>
+
+          <label className="profile-edit-field">
+            <span>Nome do item</span>
+            <input
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Ex: Fone de ouvido"
+              type="text"
+              value={title}
+            />
+          </label>
+          <div className="additem-row2">
+            <label className="profile-edit-field">
+              <span>Marca</span>
+              <input
+                onChange={(event) => setStore(event.target.value)}
+                placeholder="Ex: Sony"
+                type="text"
+                value={store ?? ''}
+              />
+            </label>
+            <label className="profile-edit-field">
+              <span>Preço</span>
+              <input
+                inputMode="decimal"
+                onChange={(event) => setPrice(event.target.value)}
+                placeholder="R$ 299,00"
+                type="text"
+                value={price}
+              />
+            </label>
+          </div>
+
+          <button
+            className="primary-button primary-button--full"
+            disabled={addItem.isPending}
+            type="submit"
+          >
+            {addItem.isPending ? 'Adicionando...' : 'Salvar item'}
+          </button>
+        </form>
+      </Modal>
 
       <Modal onClose={() => setShareOpen(false)} open={shareOpen} title="Compartilhar lista">
         <form className="share-form" onSubmit={handleAddCollaborator}>

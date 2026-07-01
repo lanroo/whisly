@@ -213,6 +213,40 @@ async function storeImage(
   }
 }
 
+/**
+ * Fallback via Microlink (renderiza JS) — pega dados de sites que não expõem
+ * OG no HTML cru (ex.: alguns varejistas). Free tier, sem chave.
+ */
+async function microlinkFallback(
+  url: string,
+): Promise<{ title?: string; image?: string; store?: string }> {
+  try {
+    // Com MICROLINK_API_KEY (plano pago) habilita proxy — passa por sites
+    // protegidos (Magalu, Amazon, Mercado Livre). Sem chave, usa o free tier.
+    const apiKey = Deno.env.get('MICROLINK_API_KEY');
+    const endpoint = apiKey
+      ? `https://pro.microlink.io/?url=${encodeURIComponent(url)}&proxy=residential`
+      : `https://api.microlink.io/?url=${encodeURIComponent(url)}`;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (apiKey) headers['x-api-key'] = apiKey;
+
+    const r = await fetch(endpoint, { headers });
+    if (!r.ok) return {};
+    const j = (await r.json()) as {
+      status?: string;
+      data?: { title?: string; publisher?: string; image?: { url?: string }; logo?: { url?: string } };
+    };
+    if (j.status !== 'success' || !j.data) return {};
+    return {
+      title: j.data.title ?? undefined,
+      image: j.data.image?.url ?? j.data.logo?.url ?? undefined,
+      store: j.data.publisher ?? undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -224,53 +258,66 @@ Deno.serve(async (req) => {
       return json({ error: 'URL inválida' }, 400);
     }
 
-    const res = await fetch(url, {
-      redirect: 'follow',
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-      },
-    });
+    let title: string | undefined;
+    let brand: string | undefined;
+    let price: string | undefined;
+    let image: string | undefined;
+    let baseUrl = url;
 
-    if (!res.ok) {
-      return json({ error: `Falha ao buscar a página (${res.status})` }, 200);
+    // 1) Raspagem direta do HTML (rápida; funciona onde há OG/JSON-LD).
+    try {
+      const res = await fetch(url, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+        },
+      });
+      if (res.ok) {
+        baseUrl = res.url || url;
+        const html = (await res.text()).slice(0, 1_500_000);
+        const ld = fromJsonLd(html);
+        const titleTag = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim();
+        title =
+          ld.title ??
+          metaContent(html, 'og:title') ??
+          metaContent(html, 'twitter:title') ??
+          (titleTag ? decodeEntities(titleTag) : undefined);
+        brand = ld.brand ?? metaContent(html, 'product:brand') ?? metaContent(html, 'og:site_name');
+        price =
+          ld.price ??
+          formatPrice(
+            metaContent(html, 'product:price:amount') ?? metaContent(html, 'og:price:amount'),
+            metaContent(html, 'product:price:currency') ?? metaContent(html, 'og:price:currency'),
+          );
+        image = absoluteUrl(
+          ld.image ??
+            metaContent(html, 'og:image:secure_url') ??
+            metaContent(html, 'og:image') ??
+            metaContent(html, 'twitter:image'),
+          baseUrl,
+        );
+      }
+    } catch {
+      // segue para o fallback
     }
 
-    const html = (await res.text()).slice(0, 1_500_000);
-    const ld = fromJsonLd(html);
-
-    const ogPrice = formatPrice(
-      metaContent(html, 'product:price:amount') ??
-        metaContent(html, 'og:price:amount'),
-      metaContent(html, 'product:price:currency') ??
-        metaContent(html, 'og:price:currency'),
-    );
-
-    const titleTag = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim();
-
-    const externalImage = absoluteUrl(
-      ld.image ??
-        metaContent(html, 'og:image:secure_url') ??
-        metaContent(html, 'og:image') ??
-        metaContent(html, 'twitter:image'),
-      res.url || url,
-    );
+    // 2) Fallback Microlink (renderiza JS) para o que faltou.
+    if (!title || !image) {
+      const ml = await microlinkFallback(url);
+      title = title ?? ml.title;
+      brand = brand ?? ml.store;
+      image = image ?? ml.image;
+    }
 
     const preview: Preview = {
-      title:
-        ld.title ??
-        metaContent(html, 'og:title') ??
-        metaContent(html, 'twitter:title') ??
-        (titleTag ? decodeEntities(titleTag) : undefined),
-      brand:
-        ld.brand ??
-        metaContent(html, 'product:brand') ??
-        metaContent(html, 'og:site_name'),
-      price: ld.price ?? ogPrice,
+      title,
+      brand,
+      price,
       // Hospeda a imagem no Storage (evita hotlink 403 ao exibir na lista).
-      image: await storeImage(externalImage, res.url || url),
+      image: await storeImage(image, baseUrl),
     };
 
     return json(preview);

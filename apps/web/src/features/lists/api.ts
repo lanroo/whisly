@@ -6,6 +6,7 @@ import { storeNameFromUrl } from '@/shared/store-name';
 import type { WishlistSummary } from '@/types/models';
 
 export type ListPrivacy = Database['public']['Enums']['list_privacy'];
+export type ItemStatus = Database['public']['Enums']['item_status'];
 type ListRow = Database['public']['Tables']['lists']['Row'];
 
 const PRIVACY_LABEL: Record<ListPrivacy, string> = {
@@ -183,6 +184,8 @@ export interface ListItem {
   imageUrl: string | null;
   /** Quem adicionou — usado para liberar editar/remover só para o autor. */
   addedBy: string | null;
+  /** Urgência/estado do item (mostrado como selo no card). */
+  status: ItemStatus;
   /** Reserva visível (escondida do dono = surpresa). null se não reservado/visível. */
   reservation: { id: string; reservedBy: string } | null;
 }
@@ -211,6 +214,7 @@ function mapItem(row: ItemRowWithReservation): ListItem {
     url: row.url,
     imageUrl: row.image_url,
     addedBy: row.added_by,
+    status: row.status,
     reservation: resv ? { id: resv.id, reservedBy: resv.reserved_by } : null,
   };
 }
@@ -270,10 +274,12 @@ export interface AddItemInput {
   title: string;
   url?: string | null;
   price?: string | null;
-  /** Imagem capturada do link (Microlink). */
+  /** Imagem capturada do link ou enviada do dispositivo. */
   imageUrl?: string | null;
   /** Loja capturada do link; se ausente, derivamos do domínio. */
   store?: string | null;
+  /** Urgência/estado do item. Padrão: 'desired'. */
+  status?: ItemStatus;
 }
 
 async function addItem(userId: string, listId: string, input: AddItemInput): Promise<void> {
@@ -288,6 +294,7 @@ async function addItem(userId: string, listId: string, input: AddItemInput): Pro
     image_url: input.imageUrl?.trim() || null,
     brand: store,
     added_by: userId,
+    status: input.status ?? 'desired',
   });
   if (error) throw error;
 }
@@ -313,6 +320,22 @@ export function useDeleteItem(listId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (itemId: string) => deleteItem(itemId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+async function updateItemStatus(itemId: string, status: ItemStatus): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase.from('list_items').update({ status }).eq('id', itemId);
+  if (error) throw error;
+}
+
+/** Atualiza a urgência/estado de um item (a RLS garante que só o autor consegue). */
+export function useUpdateItemStatus(listId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, status }: { itemId: string; status: ItemStatus }) =>
+      updateItemStatus(itemId, status),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
   });
 }

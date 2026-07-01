@@ -1,38 +1,48 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { CreateFlowHeader } from '../components/CreateFlowHeader';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
-import { useCreateList, type ListPrivacy } from '../features/lists/api';
+import { uploadItemImage, useCreateList, type ListPrivacy } from '../features/lists/api';
+import { PRIVACY_CHOICES } from '../shared/config/privacy';
 import { useToast } from '../shared/ui';
 
-const privacyOptions = [
-  {
-    value: 'private',
-    title: 'Privada',
-    description: 'Apenas você pode ver e editar',
-    icon: 'lock',
-  },
-  {
-    value: 'collaborative',
-    title: 'Colaborativa',
-    description: 'Amigos podem adicionar e interagir',
-    icon: 'group',
-  },
-  {
-    value: 'public',
-    title: 'Pública',
-    description: 'Qualquer pessoa com o link',
-    icon: 'public',
-  },
-];
+// Mesma imagem usada como capa padrão das listas (features/lists/api.ts) — evita
+// depender de uma URL de preview do Google, que expira.
+const DEFAULT_COVER_ART =
+  'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1200&q=80';
 
 export function CreateListPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const createList = useCreateList();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [listName, setListName] = useState('');
   const [privacy, setPrivacy] = useState<ListPrivacy>('private');
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  async function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.show({ variant: 'error', title: 'Selecione um arquivo de imagem' });
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      setCoverImage(await uploadItemImage(file));
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível enviar a capa',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setUploadingCover(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,7 +53,7 @@ export function CreateListPage() {
     }
 
     try {
-      const listId = await createList.mutateAsync({ title, privacy });
+      const listId = await createList.mutateAsync({ title, privacy, coverImage });
       toast.show({ variant: 'success', title: 'Lista criada' });
       navigate(`/lists/${listId}`);
     } catch (error) {
@@ -62,30 +72,46 @@ export function CreateListPage() {
       <main className="create-flow-page">
         <form className="create-list-form-v2" id="create-list-form" onSubmit={handleSubmit}>
           <section className="create-list-cover">
-            <button className="create-list-cover__button" type="button">
-              <div className="create-list-cover__art">
-                <img
-                  alt="Prévia da capa da lista"
-                  src="https://lh3.googleusercontent.com/aida/AP1WRLsWlDuX8SuZ7KMoHHkoC2fOyS_OQFhABOBOKG4n7TcMHM2BNXia-Xxxw3Tox07NyiiirNzIyIJAYTDdH-Y3rk3ZRKPaMFmkCjpBox2tu6tqayL4CcPZzgn70YgYFacD9PeSmPGbgm8CjZENn5yRcDjMQF13eeYkbf0e8qMOLlau7mtcO-lPyz-zSxxa8owMHYy1KgnrnwJhf3TzLqFxrrKyHlw3T0SSGkpk-LHG8HNMYQCIdRlHGoqD3g"
-                />
-                <div className="create-list-cover__overlay">
-                  <div className="create-list-cover__phone">
-                    <div className="create-list-cover__phone-notch" />
-                    <div className="create-list-cover__phone-lines">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                      <span />
+            <button
+              className="create-list-cover__button"
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+            >
+              <div className={`create-list-cover__art ${coverImage ? 'has-image' : ''}`.trim()}>
+                <img alt="Prévia da capa da lista" src={coverImage ?? DEFAULT_COVER_ART} />
+                {!coverImage ? (
+                  <div className="create-list-cover__overlay">
+                    <div className="create-list-cover__phone">
+                      <div className="create-list-cover__phone-notch" />
+                      <div className="create-list-cover__phone-lines">
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : null}
               </div>
               <span className="create-list-cover__edit">
-                <MaterialIcon name="edit" />
+                <MaterialIcon name={uploadingCover ? 'hourglass_top' : 'edit'} />
               </span>
             </button>
-            <p>Escolher imagem de capa</p>
+            <input
+              accept="image/*"
+              hidden
+              onChange={handleCoverChange}
+              ref={fileInputRef}
+              type="file"
+            />
+            <p>
+              {uploadingCover
+                ? 'Enviando...'
+                : coverImage
+                  ? 'Trocar imagem de capa'
+                  : 'Escolher imagem de capa'}
+            </p>
           </section>
 
           <label className="create-list-input">
@@ -103,7 +129,7 @@ export function CreateListPage() {
           <section className="create-list-privacy">
             <h2>Privacidade</h2>
             <div className="create-list-privacy__card">
-              {privacyOptions.map((option) => (
+              {PRIVACY_CHOICES.map((option) => (
                 <CreateListPrivacyOption
                   checked={privacy === option.value}
                   description={option.description}

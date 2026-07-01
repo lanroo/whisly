@@ -4222,3 +4222,105 @@ a.collaborator-row {
   line-height: 16px;
   text-align: center;
 }
+
+/* ============================================================
+   Modal "Adicionar item" — captura automática + foto grande
+   ============================================================ */
+.additem-trigger {
+  margin-top: 4px;
+}
+
+.additem-form {
+  display: grid;
+  gap: 16px;
+}
+
+.additem-link {
+  display: grid;
+  gap: 6px;
+}
+
+.additem-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: #8a8a93;
+}
+
+.additem-hint.is-loading {
+  color: #242941;
+  font-weight: 500;
+}
+
+.additem-spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  border: 2px solid rgba(36, 41, 65, 0.25);
+  border-top-color: #242941;
+  animation: additem-spin 0.7s linear infinite;
+}
+
+@keyframes additem-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.additem-preview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 180px;
+  border-radius: 14px;
+  background: #f2f2f7;
+  overflow: hidden;
+}
+
+.additem-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.additem-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  color: #8a8a93;
+  text-align: center;
+}
+
+.additem-preview-empty .material-symbols-outlined {
+  font-size: 34px;
+  opacity: 0.6;
+}
+
+.additem-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.additem-upload {
+  width: auto;
+  min-height: 42px;
+  cursor: pointer;
+}
+
+.additem-remove {
+  color: #c93d3d;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.additem-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

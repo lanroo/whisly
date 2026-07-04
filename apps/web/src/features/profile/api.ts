@@ -112,3 +112,71 @@ export function useUpdateProfile() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 }
+
+export interface PublicList {
+  id: string;
+  title: string;
+  image: string;
+  items: number;
+}
+
+export interface PublicProfileData {
+  id: string;
+  name: string;
+  handle: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  lists: PublicList[];
+}
+
+const PROFILE_DEFAULT_COVER =
+  'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1200&q=80';
+
+async function fetchPublicProfile(userId: string): Promise<PublicProfileData | null> {
+  if (!supabase) return null;
+
+  const [profileRes, listsRes] = await Promise.all([
+    supabase.from('profiles').select('id, name, handle, bio, avatar_url').eq('id', userId).maybeSingle(),
+    supabase
+      .from('lists')
+      .select('id, title, cover_image, list_items(count)')
+      .eq('owner_id', userId)
+      .eq('privacy', 'public')
+      .order('updated_at', { ascending: false }),
+  ]);
+
+  if (profileRes.error) throw profileRes.error;
+  if (!profileRes.data) return null;
+  if (listsRes.error) throw listsRes.error;
+
+  const p = profileRes.data;
+  const rows = (listsRes.data ?? []) as unknown as {
+    id: string;
+    title: string;
+    cover_image: string | null;
+    list_items: { count: number }[];
+  }[];
+
+  return {
+    id: p.id,
+    name: p.name ?? 'Usuário',
+    handle: p.handle,
+    bio: p.bio,
+    avatarUrl: p.avatar_url,
+    lists: rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      image: r.cover_image ?? PROFILE_DEFAULT_COVER,
+      items: r.list_items?.[0]?.count ?? 0,
+    })),
+  };
+}
+
+/** Perfil público de outra pessoa (dados + listas públicas). */
+export function usePublicProfile(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['profile', 'public', userId],
+    queryFn: () => fetchPublicProfile(userId!),
+    enabled: Boolean(userId),
+  });
+}

@@ -575,6 +575,34 @@ export function useAddCollaborator(listId: string | undefined) {
   });
 }
 
+async function inviteById(listId: string, userId: string, role: CollaboratorRole): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const { error } = await supabase
+    .from('collaborators')
+    .insert({ list_id: listId, user_id: userId, role });
+  if (error) {
+    if (error.code === '23505') throw new Error('Essa pessoa já está nesta lista.');
+    throw error;
+  }
+}
+
+/** Convida uma pessoa (por id) para uma lista escolhida — ex.: pela tela de perfil. */
+export function useInviteToList() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      listId,
+      userId,
+      role = 'editor',
+    }: {
+      listId: string;
+      userId: string;
+      role?: CollaboratorRole;
+    }) => inviteById(listId, userId, role),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['collaborators'] }),
+  });
+}
+
 async function removeCollaborator(collaboratorId: string): Promise<void> {
   if (!supabase) throw new Error('Supabase não configurado.');
   const { error } = await supabase.from('collaborators').delete().eq('id', collaboratorId);

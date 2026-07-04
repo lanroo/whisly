@@ -13,6 +13,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { StyleguidePage } from './pages/StyleguidePage';
+import { UserProfilePage } from './pages/UserProfilePage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/u/:userId" element={<UserProfilePage />} />
         <Route path="/configuracoes" element={<SettingsPage />} />
         <Route path="/collaborators" element={<CollaboratorsPage />} />
         <Route path="/lists" element={<ListsPage />} />

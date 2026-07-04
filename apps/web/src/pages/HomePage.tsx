@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
+import { MyAvatar } from '../components/MyAvatar';
 import {
   fetchLinkPreview,
   useAddItemToList,
@@ -9,10 +10,9 @@ import {
   useMyLists,
   useSharedLists,
 } from '../features/lists/api';
-import { useAuth } from '../shared/auth';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import type { WishlistSummary } from '../types/models';
-import { Avatar, Button, Modal, Skeleton, useToast } from '../shared/ui';
+import { Button, Modal, Skeleton, useToast } from '../shared/ui';
 
 /** Passos de onboarding exibidos para quem ainda não tem listas. */
 const JOURNEY = [
@@ -57,15 +57,12 @@ function ListTile({ list, shape }: { list: WishlistSummary; shape: ListTileShape
 export function HomePage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { user } = useAuth();
   const { data: lists, isLoading } = useMyLists();
   const { data: shared } = useSharedLists();
   const addItemToList = useAddItemToList();
   const createList = useCreateList();
   const sharedLists = shared ?? [];
   const allMyLists = lists ?? [];
-  const firstName =
-    (user?.user_metadata?.name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
   const myLists = allMyLists.slice(0, 6);
   const hasNoLists = !isLoading && myLists.length === 0;
   const [link, setLink] = useState('');
@@ -185,7 +182,7 @@ export function HomePage() {
         <div className="wishly-home-topbar__inner">
           <span className="wishly-home-topbar__brand">Wishly</span>
           <Link aria-label="Seu perfil" className="wishly-home-topbar__avatar" to="/profile">
-            <Avatar name={firstName} size="sm" />
+            <MyAvatar size="sm" />
           </Link>
         </div>
       </header>

@@ -2,7 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/shared/auth';
 
-export type ActivityType = 'reservation' | 'collaborator_added' | 'item_added';
+export type ActivityType =
+  | 'reservation'
+  | 'collaborator_added'
+  | 'item_added'
+  | 'friend_request'
+  | 'friend_accepted';
 
 export interface ActivityEntry {
   id: string;
@@ -10,7 +15,9 @@ export interface ActivityEntry {
   listId: string | null;
   listTitle: string | null;
   itemTitle: string | null;
+  actorId: string | null;
   actorName: string | null;
+  friendshipId: string | null;
   read: boolean;
   createdAt: string;
 }
@@ -20,7 +27,7 @@ interface ActivityRow {
   type: string;
   list_id: string | null;
   actor_id: string | null;
-  metadata: { list_title?: string; item_title?: string } | null;
+  metadata: { list_title?: string; item_title?: string; friendship_id?: string } | null;
   read: boolean;
   created_at: string;
 }
@@ -50,7 +57,9 @@ async function fetchActivity(userId: string): Promise<ActivityEntry[]> {
     listId: r.list_id,
     listTitle: r.metadata?.list_title ?? null,
     itemTitle: r.metadata?.item_title ?? null,
+    actorId: r.actor_id,
     actorName: r.actor_id ? names.get(r.actor_id) ?? 'Alguém' : null,
+    friendshipId: r.metadata?.friendship_id ?? null,
     read: r.read,
     createdAt: r.created_at,
   }));

@@ -4703,3 +4703,147 @@ a.collaborator-row {
   border-color: rgba(36, 41, 65, 0.3);
   box-shadow: 0 0 0 4px rgba(36, 41, 65, 0.06);
 }
+
+/* ============================================================
+   Pessoas / amizades (Explorar, Perfil, Atividade)
+   ============================================================ */
+.person-list {
+  display: grid;
+  gap: 8px;
+}
+
+.person-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(199, 197, 206, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.person-item__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.person-item__info {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.person-item__info strong {
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.person-item__info span {
+  font-size: 12px;
+  color: #77767e;
+}
+
+.person-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #242941;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.person-add:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.person-add:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.person-add:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.person-add .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.person-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #f2f2f7;
+  color: #77767e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.person-tag--friend {
+  background: rgba(11, 143, 99, 0.12);
+  color: #0b8f63;
+}
+
+.person-tag .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.profile-hint {
+  margin: 8px 0 0;
+  text-align: center;
+  color: #8a8a93;
+  font-size: 12px;
+}
+
+/* Ícones de atividade — amizade */
+.activity-item__icon--friend_request {
+  background: rgba(36, 41, 65, 0.1);
+  color: #242941;
+}
+
+.activity-item__icon--friend_accepted {
+  background: rgba(11, 143, 99, 0.12);
+  color: #0b8f63;
+}
+
+.activity-item__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.activity-item__decline {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #f2f2f7;
+  color: #46464d;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.activity-item__decline:hover:not(:disabled) {
+  background: #e7e7ee;
+}
+
+.activity-item:has(.activity-item__actions) {
+  align-items: flex-start;
+}

@@ -1,12 +1,18 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
-import { useMyLists, useSharedLists } from '../features/lists/api';
+import {
+  fetchLinkPreview,
+  useAddItemToList,
+  useCreateList,
+  useMyLists,
+  useSharedLists,
+} from '../features/lists/api';
 import { useAuth } from '../shared/auth';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import type { WishlistSummary } from '../types/models';
-import { Avatar, Skeleton } from '../shared/ui';
+import { Avatar, Button, Modal, Skeleton, useToast } from '../shared/ui';
 
 /** Passos de onboarding exibidos para quem ainda não tem listas. */
 const JOURNEY = [
@@ -50,23 +56,121 @@ function ListTile({ list, shape }: { list: WishlistSummary; shape: ListTileShape
 
 export function HomePage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const { user } = useAuth();
   const { data: lists, isLoading } = useMyLists();
   const { data: shared } = useSharedLists();
+  const addItemToList = useAddItemToList();
+  const createList = useCreateList();
   const sharedLists = shared ?? [];
+  const allMyLists = lists ?? [];
   const firstName =
     (user?.user_metadata?.name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
-  const myLists = (lists ?? []).slice(0, 6);
+  const myLists = allMyLists.slice(0, 6);
   const hasNoLists = !isLoading && myLists.length === 0;
   const [link, setLink] = useState('');
 
+  // Modal "Guardar produto"
+  const [guardOpen, setGuardOpen] = useState(false);
+  const [guardUrl, setGuardUrl] = useState('');
+  const [capturing, setCapturing] = useState(false);
+  const [gTitle, setGTitle] = useState('');
+  const [gImage, setGImage] = useState<string | null>(null);
+  const [gStore, setGStore] = useState<string | null>(null);
+  const [gPrice, setGPrice] = useState<string | null>(null);
+  const [newListName, setNewListName] = useState('');
+  const [savingTo, setSavingTo] = useState<string | null>(null);
+
   function handleCapture(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // A captura real de produto por URL ainda não existe (depende de uma edge
-    // function que lê os metadados da página — ver card de captura). Por ora,
-    // levamos ao fluxo de criar lista, repassando o link digitado.
-    navigate('/lists/new', { state: { capturedUrl: link.trim() || undefined } });
+    const target = link.trim();
+    if (!target) return;
+    setGuardUrl(target);
+    setGTitle('');
+    setGImage(null);
+    setGStore(null);
+    setGPrice(null);
+    setNewListName('');
+    setCapturing(true);
+    setGuardOpen(true);
   }
+
+  // Captura os dados do produto quando o modal abre.
+  useEffect(() => {
+    if (!guardOpen || !guardUrl) return;
+    let active = true;
+    fetchLinkPreview(guardUrl)
+      .then((preview) => {
+        if (!active) return;
+        setGTitle(preview.title ?? '');
+        setGImage(preview.image ?? null);
+        setGStore(preview.store ?? null);
+        setGPrice(preview.price ?? null);
+      })
+      .finally(() => {
+        if (active) setCapturing(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [guardOpen, guardUrl]);
+
+  function itemInput() {
+    return {
+      title: gTitle.trim() || 'Produto',
+      url: guardUrl,
+      imageUrl: gImage,
+      store: gStore,
+      price: gPrice,
+    };
+  }
+
+  async function saveToList(listId: string) {
+    setSavingTo(listId);
+    try {
+      await addItemToList.mutateAsync({ listId, input: itemInput() });
+      setGuardOpen(false);
+      setLink('');
+      toast.show({ variant: 'success', title: 'Produto guardado' });
+      navigate(`/lists/${listId}`);
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível guardar',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setSavingTo(null);
+    }
+  }
+
+  async function createAndSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = newListName.trim();
+    if (!name) {
+      toast.show({ title: 'Dê um nome à nova lista' });
+      return;
+    }
+    setSavingTo('new');
+    try {
+      const listId = await createList.mutateAsync({ title: name, privacy: 'private' });
+      await addItemToList.mutateAsync({ listId, input: itemInput() });
+      setGuardOpen(false);
+      setLink('');
+      toast.show({ variant: 'success', title: 'Lista criada e produto guardado' });
+      navigate(`/lists/${listId}`);
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível criar a lista',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setSavingTo(null);
+    }
+  }
+
+  const busy = savingTo !== null;
 
   return (
     <AppShell
@@ -186,6 +290,81 @@ export function HomePage() {
           </section>
         ) : null}
       </main>
+
+      <Modal onClose={() => setGuardOpen(false)} open={guardOpen} title="Guardar produto">
+        <div className="guard">
+          <div className="guard__preview">
+            {capturing ? (
+              <div className="guard__preview-empty">
+                <span className="additem-spinner" />
+                <span>Buscando dados do produto...</span>
+              </div>
+            ) : gImage ? (
+              <img alt="Prévia do produto" src={gImage} />
+            ) : (
+              <div className="guard__preview-empty">
+                <MaterialIcon name="image" />
+                <span>Sem imagem — você pode ajustar na lista</span>
+              </div>
+            )}
+          </div>
+
+          <label className="profile-edit-field guard__name">
+            <span>Nome do produto</span>
+            <input
+              onChange={(event) => setGTitle(event.target.value)}
+              placeholder="Ex: Fone de ouvido"
+              type="text"
+              value={gTitle}
+            />
+          </label>
+
+          {allMyLists.length > 0 ? (
+            <div className="guard__section">
+              <span className="guard__label">Adicionar a uma lista</span>
+              <div className="guard__lists">
+                {allMyLists.map((list) => (
+                  <button
+                    className="guard__list-row"
+                    disabled={busy}
+                    key={list.id}
+                    onClick={() => saveToList(list.id)}
+                    type="button"
+                  >
+                    <img alt="" className="guard__list-thumb" src={list.image} />
+                    <div className="guard__list-info">
+                      <strong>{list.title}</strong>
+                      <span>{list.items} itens</span>
+                    </div>
+                    {savingTo === list.id ? (
+                      <span className="additem-spinner" />
+                    ) : (
+                      <MaterialIcon name="add" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <form className="guard__section guard__new" onSubmit={createAndSave}>
+            <span className="guard__label">
+              {allMyLists.length > 0 ? 'Ou criar uma nova lista' : 'Criar sua primeira lista'}
+            </span>
+            <div className="guard__new-row">
+              <input
+                onChange={(event) => setNewListName(event.target.value)}
+                placeholder="Nome da nova lista"
+                type="text"
+                value={newListName}
+              />
+              <Button disabled={busy} type="submit">
+                {savingTo === 'new' ? 'Criando...' : 'Criar e guardar'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </AppShell>
   );
 }

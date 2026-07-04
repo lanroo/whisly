@@ -309,6 +309,20 @@ export function useAddItem(listId: string) {
   });
 }
 
+/** Adiciona um item a uma lista escolhida na hora (ex.: pela Home). */
+export function useAddItemToList() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: ({ listId, input }: { listId: string; input: AddItemInput }) =>
+      addItem(user!.id, listId, input),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['list-items', variables.listId] });
+      queryClient.invalidateQueries({ queryKey: ['lists', 'mine'] });
+    },
+  });
+}
+
 async function deleteItem(itemId: string): Promise<void> {
   if (!supabase) throw new Error('Supabase não configurado.');
   const { error } = await supabase.from('list_items').delete().eq('id', itemId);

@@ -7,13 +7,16 @@ import {
   useMarkActivityRead,
   type ActivityEntry,
 } from '../features/activity/api';
+import { useRespondFriend } from '../features/friends/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { EmptyState, Skeleton } from '../shared/ui';
+import { EmptyState, Skeleton, useToast } from '../shared/ui';
 
 const ICON: Record<ActivityEntry['type'], string> = {
   reservation: 'redeem',
   collaborator_added: 'group_add',
   item_added: 'add_shopping_cart',
+  friend_request: 'person_add',
+  friend_accepted: 'how_to_reg',
 };
 
 function timeAgo(iso: string): string {
@@ -54,6 +57,18 @@ function renderMessage(item: ActivityEntry) {
           em <strong>{list}</strong>.
         </>
       );
+    case 'friend_request':
+      return (
+        <>
+          <strong>{actor}</strong> quer ser seu amigo.
+        </>
+      );
+    case 'friend_accepted':
+      return (
+        <>
+          <strong>{actor}</strong> aceitou sua solicitação de amizade. 🎉
+        </>
+      );
     default:
       return null;
   }
@@ -62,7 +77,25 @@ function renderMessage(item: ActivityEntry) {
 export function ActivityPage() {
   const { data: feed, isLoading } = useActivity();
   const markRead = useMarkActivityRead();
+  const respond = useRespondFriend();
+  const toast = useToast();
   const entries = feed ?? [];
+
+  async function handleRespond(friendshipId: string, accept: boolean) {
+    try {
+      await respond.mutateAsync({ friendshipId, accept });
+      toast.show({
+        variant: accept ? 'success' : 'info',
+        title: accept ? 'Solicitação aceita' : 'Solicitação recusada',
+      });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível responder',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
 
   // Ao abrir, marca tudo como lido (limpa o badge do sino).
   useEffect(() => {
@@ -107,7 +140,7 @@ export function ActivityPage() {
         ) : (
           <section className="activity-feed">
             {entries.map((item) => {
-              const body = (
+              const iconAndBody = (
                 <>
                   <div className={`activity-item__icon activity-item__icon--${item.type}`}>
                     <MaterialIcon name={ICON[item.type]} />
@@ -115,17 +148,52 @@ export function ActivityPage() {
                   <div className="activity-item__body">
                     <p>{renderMessage(item)}</p>
                     <span>{timeAgo(item.createdAt)}</span>
+                    {item.type === 'friend_request' && item.friendshipId ? (
+                      <div className="activity-item__actions">
+                        <button
+                          className="person-add"
+                          disabled={respond.isPending}
+                          onClick={() => handleRespond(item.friendshipId!, true)}
+                          type="button"
+                        >
+                          Aceitar
+                        </button>
+                        <button
+                          className="activity-item__decline"
+                          disabled={respond.isPending}
+                          onClick={() => handleRespond(item.friendshipId!, false)}
+                          type="button"
+                        >
+                          Recusar
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                   {!item.read ? <span className="activity-item__dot" /> : null}
                 </>
               );
+
+              if (item.type === 'friend_request') {
+                return (
+                  <article className="activity-item" key={item.id}>
+                    {iconAndBody}
+                  </article>
+                );
+              }
+              if (item.type === 'friend_accepted' && item.actorId) {
+                return (
+                  <Link className="activity-item" key={item.id} to={`/u/${item.actorId}`}>
+                    {iconAndBody}
+                  </Link>
+                );
+              }
               return item.listId ? (
                 <Link className="activity-item" key={item.id} to={`/lists/${item.listId}`}>
-                  {body}
+                  {iconAndBody}
                 </Link>
               ) : (
                 <article className="activity-item" key={item.id}>
-                  {body}
+                  {iconAndBody}
                 </article>
               );
             })}

@@ -3,6 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { TopBar } from '../components/TopBar';
+import {
+  statusFromGraph,
+  useFriendGraph,
+  useRespondFriend,
+  useSendFriendRequest,
+} from '../features/friends/api';
 import { useMyLists, useInviteToList } from '../features/lists/api';
 import { usePublicProfile } from '../features/profile/api';
 import { useAuth } from '../shared/auth';
@@ -15,12 +21,54 @@ export function UserProfilePage() {
   const toast = useToast();
   const { data: profile, isLoading } = usePublicProfile(userId);
   const { data: myLists } = useMyLists();
+  const { data: graph } = useFriendGraph();
   const invite = useInviteToList();
+  const sendRequest = useSendFriendRequest();
+  const respond = useRespondFriend();
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [invitingTo, setInvitingTo] = useState<string | null>(null);
 
   const isSelf = user?.id === userId;
+  const friendInfo = statusFromGraph(graph, user?.id, userId ?? '');
+  const areFriends = friendInfo.status === 'friends';
+
+  async function handleFriendAction() {
+    try {
+      if (friendInfo.status === 'none') {
+        await sendRequest.mutateAsync(userId!);
+        toast.show({ variant: 'success', title: 'Solicitação enviada' });
+      } else if (friendInfo.status === 'pending_received' && friendInfo.friendshipId) {
+        await respond.mutateAsync({ friendshipId: friendInfo.friendshipId, accept: true });
+        toast.show({ variant: 'success', title: 'Agora vocês são amigos' });
+      } else if (friendInfo.friendshipId) {
+        await respond.mutateAsync({ friendshipId: friendInfo.friendshipId, accept: false });
+        toast.show({ title: 'Amizade desfeita' });
+      }
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Ação de amizade falhou',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  const friendPending = sendRequest.isPending || respond.isPending;
+  const friendLabel =
+    friendInfo.status === 'friends'
+      ? 'Amigos'
+      : friendInfo.status === 'pending_sent'
+        ? 'Solicitação enviada'
+        : friendInfo.status === 'pending_received'
+          ? 'Aceitar solicitação'
+          : 'Adicionar amigo';
+  const friendIcon =
+    friendInfo.status === 'friends'
+      ? 'how_to_reg'
+      : friendInfo.status === 'pending_sent'
+        ? 'schedule'
+        : 'person_add';
   const lists = profile?.lists ?? [];
   const ownedLists = myLists ?? [];
   const initial = (profile?.name ?? '?').trim().charAt(0).toUpperCase() || '?';
@@ -79,10 +127,23 @@ export function UserProfilePage() {
 
               {!isSelf ? (
                 <div className="profile-actions">
-                  <Button icon="group_add" onClick={() => setInviteOpen(true)} variant="secondary">
-                    Convidar para uma lista
+                  <Button
+                    disabled={friendPending || friendInfo.status === 'pending_sent'}
+                    icon={friendIcon}
+                    onClick={handleFriendAction}
+                    variant={areFriends ? 'ghost' : 'primary'}
+                  >
+                    {friendLabel}
                   </Button>
+                  {areFriends ? (
+                    <Button icon="group_add" onClick={() => setInviteOpen(true)} variant="secondary">
+                      Convidar para uma lista
+                    </Button>
+                  ) : null}
                 </div>
+              ) : null}
+              {!isSelf && !areFriends ? (
+                <p className="profile-hint">Vocês precisam ser amigos para compartilhar listas.</p>
               ) : null}
             </section>
 

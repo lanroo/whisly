@@ -2630,6 +2630,8 @@ input {
   justify-items: center;
   gap: 6px;
   text-align: center;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .explore-creator-card--friend {
@@ -2642,14 +2644,42 @@ input {
   padding: 3px;
   border-radius: 999px;
   background: linear-gradient(180deg, #f6d9a4 0%, #9d6a32 100%);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-.explore-creator-card__avatar img {
+.explore-creator-card:hover .explore-creator-card__avatar {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(157, 106, 50, 0.28);
+}
+
+.explore-creator-card:active .explore-creator-card__avatar {
+  transform: scale(0.96);
+}
+
+.explore-creator-card__avatar img,
+.explore-creator-card__initial {
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 999px;
   border: 2px solid #ffffff;
+}
+
+.explore-creator-card__initial {
+  background: linear-gradient(180deg, #2f3551 0%, #242941 100%);
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.explore-creator-card:hover h3 {
+  text-decoration: underline;
 }
 
 .explore-creator-card h3,

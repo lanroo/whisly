@@ -5,7 +5,7 @@ import { MaterialIcon } from '../components/MaterialIcon';
 import { useUnreadActivityCount } from '../features/activity/api';
 import { usePublicLists, type PublicOwner } from '../features/explore/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
-import { Avatar, EmptyState, Skeleton } from '../shared/ui';
+import { EmptyState, Skeleton } from '../shared/ui';
 
 export function ExplorePage() {
   const navigate = useNavigate();
@@ -84,16 +84,23 @@ export function ExplorePage() {
                 </div>
                 <div className="explore-friends-row">
                   {people.map((person) => (
-                    <article
-                      key={person.id}
+                    <Link
                       className="explore-creator-card explore-creator-card--friend"
+                      key={person.id}
+                      to={`/u/${person.id}`}
                     >
                       <div className="explore-creator-card__avatar">
-                        <Avatar name={person.name} size="lg" src={person.avatarUrl ?? undefined} />
+                        {person.avatarUrl ? (
+                          <img alt={person.name} src={person.avatarUrl} />
+                        ) : (
+                          <span className="explore-creator-card__initial">
+                            {(person.name ?? '?').trim().charAt(0).toUpperCase() || '?'}
+                          </span>
+                        )}
                       </div>
                       <h3>{person.name}</h3>
                       <p>{person.handle ? `@${person.handle}` : 'Listas públicas'}</p>
-                    </article>
+                    </Link>
                   ))}
                 </div>
               </section>

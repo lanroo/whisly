@@ -447,27 +447,52 @@ export function ListDetailsPage() {
             )}
           </div>
 
-          <div className="additem-preview">
-            {image ? (
-              <img alt="Prévia do produto" src={image} />
-            ) : (
-              <div className="additem-preview-empty">
-                <MaterialIcon name="image" />
-                <span>Foto detectada do link ou envie a sua</span>
+          <div className="additem-image">
+            <span className="profile-edit-field__label">Imagem</span>
+
+            <div className="additem-preview">
+              {image ? (
+                <img alt="Prévia do produto" src={image} />
+              ) : (
+                <div className="additem-preview-empty">
+                  <MaterialIcon name="image" />
+                  <span>Detectada do link, ou escolha abaixo</span>
+                </div>
+              )}
+            </div>
+
+            <div className="additem-image-options">
+              <label className="secondary-button additem-upload">
+                <MaterialIcon name="upload" />
+                {uploading ? 'Enviando...' : image ? 'Trocar foto' : 'Enviar do dispositivo'}
+                <input
+                  accept="image/*"
+                  disabled={uploading}
+                  hidden
+                  onChange={handleImageUpload}
+                  type="file"
+                />
+              </label>
+
+              <span className="additem-or">ou</span>
+
+              <div className="additem-url ui-field__control ui-field__control--with-icon">
+                <MaterialIcon className="ui-field__icon" name="link" />
+                <input
+                  inputMode="url"
+                  onChange={(event) => setImage(event.target.value.trim() || null)}
+                  placeholder="Cole o link da imagem"
+                  type="url"
+                  value={image ?? ''}
+                />
               </div>
-            )}
-          </div>
-          <div className="additem-actions">
-            <label className="secondary-button additem-upload">
-              <MaterialIcon name="upload" />
-              {uploading ? 'Enviando...' : image ? 'Trocar foto' : 'Enviar do dispositivo'}
-              <input accept="image/*" disabled={uploading} hidden onChange={handleImageUpload} type="file" />
-            </label>
-            {image ? (
-              <button className="additem-remove" onClick={() => setImage(null)} type="button">
-                Remover
-              </button>
-            ) : null}
+
+              {image ? (
+                <button className="additem-remove" onClick={() => setImage(null)} type="button">
+                  Remover
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <label className="profile-edit-field">

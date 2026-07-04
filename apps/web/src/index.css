@@ -4481,3 +4481,53 @@ a.collaborator-row {
 .lists-page__search {
   margin-bottom: 8px;
 }
+
+/* Opções de imagem do item — upload OU link, organizados */
+.additem-image {
+  display: grid;
+  gap: 8px;
+}
+
+.additem-image-options {
+  display: grid;
+  gap: 10px;
+  justify-items: stretch;
+}
+
+.additem-image-options .additem-upload {
+  width: 100%;
+}
+
+.additem-or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a8a93;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.additem-or::before,
+.additem-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(199, 197, 206, 0.5);
+}
+
+.additem-url input {
+  width: 100%;
+  padding: 12px 14px 12px 44px;
+  color: var(--text);
+  background: transparent;
+  font: inherit;
+}
+
+.additem-remove {
+  justify-self: center;
+  color: #c93d3d;
+  font-size: 13px;
+  font-weight: 500;
+}

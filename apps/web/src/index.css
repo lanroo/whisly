@@ -5129,3 +5129,24 @@ a.collaborator-row {
 .activity-item:has(.activity-item__actions) {
   align-items: flex-start;
 }
+
+.activity-item__profile {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.activity-item__profile:hover {
+  background: var(--accent-soft);
+}
+
+.activity-actor-link {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

@@ -292,31 +292,58 @@ export function ExplorePage() {
         ) : (
           <>
             <section className="explore-connect">
-              <div className="explore-connect__icon">
-                <MaterialIcon name="group" />
+              <div className="explore-connect__card">
+                <div className="explore-connect__avatars" aria-hidden="true">
+                  <span className="explore-connect__avatar explore-connect__avatar--side">
+                    <MaterialIcon name="person" />
+                  </span>
+                  <span className="explore-connect__avatar explore-connect__avatar--side">
+                    <MaterialIcon name="person" />
+                  </span>
+                  <span className="explore-connect__avatar explore-connect__avatar--main">
+                    <MaterialIcon name="favorite" />
+                  </span>
+                </div>
+                <h2>Encontre seus amigos</h2>
+                <p>
+                  Conecte-se pelo @usuário e as listas e novidades das pessoas aparecem aqui.
+                </p>
+                <div className="explore-connect__actions">
+                  <button
+                    className="primary-button primary-button--full"
+                    onClick={handleInvite}
+                    type="button"
+                  >
+                    <MaterialIcon name="ios_share" />
+                    <span>Convidar amigos</span>
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => searchRef.current?.focus()}
+                    type="button"
+                  >
+                    <MaterialIcon name="person_search" />
+                    <span>Buscar por @usuário</span>
+                  </button>
+                </div>
               </div>
-              <h2>Encontre seus amigos</h2>
-              <p>
-                Adicione pessoas pelo @usuário. Quando vocês se conectarem, as listas e novidades
-                delas aparecem aqui.
-              </p>
-              <div className="explore-connect__actions">
-                <button
-                  className="primary-button primary-button--full"
-                  onClick={handleInvite}
-                  type="button"
-                >
-                  <MaterialIcon name="ios_share" />
-                  <span>Convidar amigos</span>
-                </button>
-                <button
-                  className="secondary-button"
-                  onClick={() => searchRef.current?.focus()}
-                  type="button"
-                >
-                  <MaterialIcon name="person_search" />
-                  <span>Buscar por @usuário</span>
-                </button>
+
+              <div className="explore-steps">
+                <p className="explore-steps__label">Como funciona</p>
+                <ol className="explore-steps__list">
+                  <li>
+                    <span className="explore-steps__num">1</span>
+                    Busque a pessoa pelo @usuário
+                  </li>
+                  <li>
+                    <span className="explore-steps__num">2</span>
+                    Envie a solicitação de amizade
+                  </li>
+                  <li>
+                    <span className="explore-steps__num">3</span>
+                    Vejam as listas um do outro
+                  </li>
+                </ol>
               </div>
             </section>
 

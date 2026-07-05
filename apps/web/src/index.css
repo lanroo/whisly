@@ -3975,36 +3975,86 @@ button.explore-product-card {
 
 /* Explorar: estado de conexão (usuário sem amigos) */
 .explore-connect {
+  padding: 8px 0 8px;
+}
+
+.explore-connect__card {
+  padding: 26px 20px 20px;
   text-align: center;
-  padding: 24px 8px 8px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88)),
+    linear-gradient(180deg, rgba(246, 243, 245, 0.9), rgba(252, 248, 251, 0.95));
+  box-shadow: var(--shadow-1);
 }
 
-.explore-connect__icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent-soft-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.explore-connect__avatars {
+  position: relative;
+  width: 92px;
+  height: 60px;
+  margin: 0 auto 18px;
 }
 
-.explore-connect__icon .material-symbols-outlined {
-  font-size: 30px;
+.explore-connect__avatar {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
 }
 
-.explore-connect h2 {
+.explore-connect__avatar .material-symbols-outlined {
+  position: static;
+}
+
+.explore-connect__avatar--side {
+  width: 48px;
+  height: 48px;
+  top: 6px;
+  background: var(--surface-low);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.explore-connect__avatar--side .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.explore-connect__avatar--side:first-child {
+  left: 0;
+}
+
+.explore-connect__avatar--side:nth-child(2) {
+  right: 0;
+}
+
+.explore-connect__avatar--main {
+  width: 46px;
+  height: 46px;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  background: var(--accent-gradient);
+  color: #fff;
+  border: 2px solid var(--surface-strong);
+  box-shadow: 0 8px 16px rgba(36, 41, 65, 0.22);
+}
+
+.explore-connect__avatar--main .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.explore-connect__card h2 {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-family: var(--font-serif);
+  font-size: 22px;
   font-weight: 600;
   color: var(--text);
 }
 
-.explore-connect p {
+.explore-connect__card p {
   margin: 0 auto 20px;
-  max-width: 300px;
+  max-width: 280px;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
@@ -4014,6 +4064,50 @@ button.explore-product-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.explore-steps {
+  margin-top: 20px;
+}
+
+.explore-steps__label {
+  margin: 0 0 12px;
+  padding-left: 2px;
+  color: #9a99a1;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.explore-steps__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.explore-steps__list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted-2);
+  font-size: 14px;
+}
+
+.explore-steps__num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .explore-public-toggle {

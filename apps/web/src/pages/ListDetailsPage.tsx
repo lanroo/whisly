@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
+import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { TopBar } from '../components/TopBar';
 import {
   fetchLinkPreview,
@@ -94,6 +95,9 @@ export function ListDetailsPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [editPrivacy, setEditPrivacy] = useState<ListPrivacy>('private');
+  const [editShowPrices, setEditShowPrices] = useState(true);
+  const [editShowPriority, setEditShowPriority] = useState(true);
+  const [editNotify, setEditNotify] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isOwner = Boolean(user) && list?.ownerId === user?.id;
@@ -239,6 +243,9 @@ export function ListDetailsPage() {
     setEditTitle(list?.title ?? '');
     setEditDesc(list?.description ?? '');
     setEditPrivacy(list?.privacy ?? 'private');
+    setEditShowPrices(list?.showPrices ?? true);
+    setEditShowPriority(list?.showPriority ?? true);
+    setEditNotify(list?.notifyNewItems ?? true);
     setEditOpen(true);
   }
 
@@ -253,6 +260,9 @@ export function ListDetailsPage() {
         title: editTitle,
         description: editDesc.trim() || null,
         privacy: editPrivacy,
+        showPrices: editShowPrices,
+        showPriority: editShowPriority,
+        notifyNewItems: editNotify,
       });
       setEditOpen(false);
       toast.show({ variant: 'success', title: 'Lista atualizada' });
@@ -417,6 +427,8 @@ export function ListDetailsPage() {
                 onReserve={() => handleReserve(item)}
                 removing={deleteItem.isPending}
                 reserving={reserveItem.isPending || unreserveItem.isPending}
+                showPrices={list?.showPrices ?? true}
+                showPriority={list?.showPriority ?? true}
               />
             ))}
           </ul>
@@ -666,6 +678,29 @@ export function ListDetailsPage() {
               ))}
             </div>
           </div>
+          <div className="edit-list-settings">
+            <span className="profile-edit-field__label">Configurações da lista</span>
+            <div className="settings-card">
+              <SettingsToggleRow
+                checked={editShowPrices}
+                description="Exibir o preço nos itens da lista"
+                onChange={() => setEditShowPrices((v) => !v)}
+                title="Mostrar preços"
+              />
+              <SettingsToggleRow
+                checked={editShowPriority}
+                description="Exibir o selo de urgência (Urgente, Desejado…)"
+                onChange={() => setEditShowPriority((v) => !v)}
+                title="Mostrar prioridade"
+              />
+              <SettingsToggleRow
+                checked={editNotify}
+                description="Avisar você quando alguém adicionar itens"
+                onChange={() => setEditNotify((v) => !v)}
+                title="Notificar novos itens"
+              />
+            </div>
+          </div>
           <div className="profile-edit-actions">
             <Button onClick={() => setEditOpen(false)} type="button" variant="ghost">
               Cancelar
@@ -712,6 +747,8 @@ function ItemRow({
   onReserve,
   reserving,
   onEditStatus,
+  showPrices,
+  showPriority,
 }: {
   item: ListItem;
   mine: boolean;
@@ -722,6 +759,8 @@ function ItemRow({
   onReserve: () => void;
   reserving: boolean;
   onEditStatus: () => void;
+  showPrices: boolean;
+  showPriority: boolean;
 }) {
   const reservedByMe = item.reservation?.reservedBy === currentUserId;
   const reservedByOther = Boolean(item.reservation) && !reservedByMe;
@@ -739,7 +778,9 @@ function ItemRow({
       <div className="item-card__body">
         {item.store ? <span className="item-card__store">{item.store}</span> : null}
         <h3 className="item-card__title">{item.title}</h3>
-        {item.price ? <span className="item-card__price">{item.price}</span> : null}
+        {item.price && showPrices ? (
+          <span className="item-card__price">{item.price}</span>
+        ) : null}
       </div>
       {item.url ? <MaterialIcon className="item-card__open" name="open_in_new" /> : null}
     </>
@@ -755,19 +796,21 @@ function ItemRow({
         <div className="item-card__link">{inner}</div>
       )}
 
-      {mine ? (
-        <button
-          className={`item-card__badge item-card__badge--${item.status}`}
-          onClick={onEditStatus}
-          type="button"
-        >
-          {statusLabel(item.status)}
-        </button>
-      ) : (
-        <span className={`item-card__badge item-card__badge--${item.status}`}>
-          {statusLabel(item.status)}
-        </span>
-      )}
+      {showPriority ? (
+        mine ? (
+          <button
+            className={`item-card__badge item-card__badge--${item.status}`}
+            onClick={onEditStatus}
+            type="button"
+          >
+            {statusLabel(item.status)}
+          </button>
+        ) : (
+          <span className={`item-card__badge item-card__badge--${item.status}`}>
+            {statusLabel(item.status)}
+          </span>
+        )
+      ) : null}
 
       <div className="item-card__actions">
         {canReserve ? (

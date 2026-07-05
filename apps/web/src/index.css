@@ -3965,6 +3965,63 @@ button.explore-product-card {
   font-size: 14px;
 }
 
+/* Explorar: estado de conexão (usuário sem amigos) */
+.explore-connect {
+  text-align: center;
+  padding: 24px 8px 8px;
+}
+
+.explore-connect__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-soft-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.explore-connect__icon .material-symbols-outlined {
+  font-size: 30px;
+}
+
+.explore-connect h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.explore-connect p {
+  margin: 0 auto 20px;
+  max-width: 300px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.explore-connect__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.explore-public-toggle {
+  margin: 24px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(199, 197, 206, 0.3);
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.explore-public-toggle .link-button {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Home: contagem em compartilhadas */
 .wishly-shared-card__count {
   color: #77767e;

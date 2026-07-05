@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -28,10 +28,13 @@ export function ExplorePage() {
   const { data: searchResults, isLoading: searching } = useSearchPeople(search);
   const sendRequest = useSendFriendRequest();
   const respond = useRespondFriend();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [showPublic, setShowPublic] = useState(false);
 
   const isSearching = search.trim().length >= 2;
   const allLists = useMemo(() => lists ?? [], [lists]);
   const friends = useMemo(() => friendsFromGraph(graph, user?.id), [graph, user?.id]);
+  const hasFriends = friends.length > 0;
 
   // Sugestões: donos de listas públicas que ainda não têm relação comigo.
   const suggestions = useMemo(() => {
@@ -77,6 +80,25 @@ export function ExplorePage() {
         title: 'Não foi possível aceitar',
         description: error instanceof Error ? error.message : undefined,
       });
+    }
+  }
+
+  async function handleInvite() {
+    const url = window.location.origin;
+    const text = 'Vem organizar e compartilhar seus desejos comigo no Whisly!';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Whisly', text, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.show({
+          variant: 'success',
+          title: 'Link copiado',
+          description: 'Mande para seus amigos.',
+        });
+      }
+    } catch {
+      // compartilhamento cancelado pelo usuário — ignora
     }
   }
 
@@ -133,6 +155,48 @@ export function ExplorePage() {
     );
   }
 
+  const publicListsSection = (
+    <section className="explore-section">
+      <div className="section-heading explore-section__heading">
+        <h2>Listas Públicas</h2>
+      </div>
+      {isLoading ? (
+        <div className="explore-product-row">
+          <Skeleton height={200} width={160} />
+          <Skeleton height={200} width={160} />
+        </div>
+      ) : allLists.length === 0 ? (
+        <EmptyState
+          description="Quando alguém tornar uma lista pública, ela aparece aqui."
+          icon="explore"
+          title="Nada público ainda"
+        />
+      ) : (
+        <div className="explore-product-row explore-product-row--wrap">
+          {allLists.map((list) => (
+            <button
+              className="explore-product-card explore-product-card--list"
+              key={list.id}
+              onClick={() => navigate(`/lists/${list.id}`)}
+              type="button"
+            >
+              <div className="explore-product-card__media">
+                <img alt={list.title} src={list.image} />
+              </div>
+              <div className="explore-product-card__details">
+                <p>{list.owner.name}</p>
+                <h3>{list.title}</h3>
+                <strong>
+                  {list.items} {list.items === 1 ? 'item' : 'itens'}
+                </strong>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+
   return (
     <AppShell activeNavKey="explore" className="explore-shell" enablePullToRefresh navItems={MAIN_NAV_ITEMS}>
       <header className="explore-topbar">
@@ -154,6 +218,7 @@ export function ExplorePage() {
           <input
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar pessoas por nome ou @usuário..."
+            ref={searchRef}
             type="text"
             value={search}
           />
@@ -176,36 +241,34 @@ export function ExplorePage() {
               </div>
             )}
           </section>
-        ) : (
+        ) : hasFriends ? (
           <>
-            {friends.length > 0 ? (
-              <section className="explore-section">
-                <div className="section-heading explore-section__heading">
-                  <h2>Amigos</h2>
-                </div>
-                <div className="explore-friends-row">
-                  {friends.map((person) => (
-                    <Link
-                      className="explore-creator-card explore-creator-card--friend"
-                      key={person.id}
-                      to={`/u/${person.id}`}
-                    >
-                      <div className="explore-creator-card__avatar">
-                        {person.avatarUrl ? (
-                          <img alt={person.name} src={person.avatarUrl} />
-                        ) : (
-                          <span className="explore-creator-card__initial">
-                            {(person.name ?? '?').trim().charAt(0).toUpperCase() || '?'}
-                          </span>
-                        )}
-                      </div>
-                      <h3>{person.name}</h3>
-                      <p>{person.handle ? `@${person.handle}` : ''}</p>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            ) : null}
+            <section className="explore-section">
+              <div className="section-heading explore-section__heading">
+                <h2>Amigos</h2>
+              </div>
+              <div className="explore-friends-row">
+                {friends.map((person) => (
+                  <Link
+                    className="explore-creator-card explore-creator-card--friend"
+                    key={person.id}
+                    to={`/u/${person.id}`}
+                  >
+                    <div className="explore-creator-card__avatar">
+                      {person.avatarUrl ? (
+                        <img alt={person.name} src={person.avatarUrl} />
+                      ) : (
+                        <span className="explore-creator-card__initial">
+                          {(person.name ?? '?').trim().charAt(0).toUpperCase() || '?'}
+                        </span>
+                      )}
+                    </div>
+                    <h3>{person.name}</h3>
+                    <p>{person.handle ? `@${person.handle}` : ''}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
 
             {suggestions.length > 0 ? (
               <section className="explore-section">
@@ -220,45 +283,49 @@ export function ExplorePage() {
               </section>
             ) : null}
 
-            <section className="explore-section">
-              <div className="section-heading explore-section__heading">
-                <h2>Listas Públicas</h2>
+            {publicListsSection}
+          </>
+        ) : (
+          <>
+            <section className="explore-connect">
+              <div className="explore-connect__icon">
+                <MaterialIcon name="group" />
               </div>
-              {isLoading ? (
-                <div className="explore-product-row">
-                  <Skeleton height={200} width={160} />
-                  <Skeleton height={200} width={160} />
-                </div>
-              ) : allLists.length === 0 ? (
-                <EmptyState
-                  description="Quando alguém tornar uma lista pública, ela aparece aqui."
-                  icon="explore"
-                  title="Nada público ainda"
-                />
-              ) : (
-                <div className="explore-product-row explore-product-row--wrap">
-                  {allLists.map((list) => (
-                    <button
-                      className="explore-product-card explore-product-card--list"
-                      key={list.id}
-                      onClick={() => navigate(`/lists/${list.id}`)}
-                      type="button"
-                    >
-                      <div className="explore-product-card__media">
-                        <img alt={list.title} src={list.image} />
-                      </div>
-                      <div className="explore-product-card__details">
-                        <p>{list.owner.name}</p>
-                        <h3>{list.title}</h3>
-                        <strong>
-                          {list.items} {list.items === 1 ? 'item' : 'itens'}
-                        </strong>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <h2>Encontre seus amigos</h2>
+              <p>
+                Adicione pessoas pelo @usuário. Quando vocês se conectarem, as listas e novidades
+                delas aparecem aqui.
+              </p>
+              <div className="explore-connect__actions">
+                <button
+                  className="primary-button primary-button--full"
+                  onClick={handleInvite}
+                  type="button"
+                >
+                  <MaterialIcon name="ios_share" />
+                  <span>Convidar amigos</span>
+                </button>
+                <button
+                  className="secondary-button"
+                  onClick={() => searchRef.current?.focus()}
+                  type="button"
+                >
+                  <MaterialIcon name="person_search" />
+                  <span>Buscar por @usuário</span>
+                </button>
+              </div>
             </section>
+
+            {showPublic ? (
+              publicListsSection
+            ) : (
+              <p className="explore-public-toggle">
+                Só quer dar uma olhada?{' '}
+                <button className="link-button" onClick={() => setShowPublic(true)} type="button">
+                  Ver listas públicas
+                </button>
+              </p>
+            )}
           </>
         )}
       </main>

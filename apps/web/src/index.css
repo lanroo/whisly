@@ -163,7 +163,7 @@ input {
 .field__control:focus-within,
 .search-box:focus-within {
   border-color: rgba(36, 41, 65, 0.32);
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+  box-shadow: 0 0 0 4px var(--accent-ring);
 }
 
 .field__icon,
@@ -593,7 +593,7 @@ input {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(124, 58, 237, 0.12);
+  background: var(--accent-soft);
 }
 
 .trending-grid {
@@ -1745,7 +1745,7 @@ input {
 
 .create-list-input__control:focus-within {
   border-color: rgba(36, 41, 65, 0.32);
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+  box-shadow: 0 0 0 4px var(--accent-ring);
 }
 
 .create-list-input__control input {

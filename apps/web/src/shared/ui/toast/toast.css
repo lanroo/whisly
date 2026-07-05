@@ -30,7 +30,7 @@
 }
 
 .toast--info .toast__icon {
-  color: var(--primary-violet);
+  color: var(--accent);
 }
 
 .toast--success .toast__icon {

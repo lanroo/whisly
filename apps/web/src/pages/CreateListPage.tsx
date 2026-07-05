@@ -18,6 +18,7 @@ export function CreateListPage() {
   const createList = useCreateList();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [listName, setListName] = useState('');
+  const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState<ListPrivacy>('private');
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -53,7 +54,7 @@ export function CreateListPage() {
     }
 
     try {
-      const listId = await createList.mutateAsync({ title, privacy, coverImage });
+      const listId = await createList.mutateAsync({ title, privacy, coverImage, description });
       toast.show({ variant: 'success', title: 'Lista criada' });
       navigate(`/lists/${listId}`);
     } catch (error) {
@@ -122,6 +123,18 @@ export function CreateListPage() {
                 placeholder="Ex: Viagem de Férias ✈️"
                 type="text"
                 value={listName}
+              />
+            </div>
+          </label>
+
+          <label className="create-list-input">
+            <span>Descrição (opcional)</span>
+            <div className="create-list-input__control create-list-input__control--multiline">
+              <textarea
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Do que é essa lista? Ex: presentes de aniversário"
+                rows={3}
+                value={description}
               />
             </div>
           </label>

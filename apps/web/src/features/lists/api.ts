@@ -57,6 +57,7 @@ export interface CreateListInput {
   title: string;
   privacy: ListPrivacy;
   coverImage?: string | null;
+  description?: string | null;
 }
 
 async function createList(userId: string, input: CreateListInput): Promise<string> {
@@ -68,6 +69,7 @@ async function createList(userId: string, input: CreateListInput): Promise<strin
       title: input.title,
       privacy: input.privacy,
       cover_image: input.coverImage ?? null,
+      description: input.description?.trim() || null,
     })
     .select('id')
     .single();

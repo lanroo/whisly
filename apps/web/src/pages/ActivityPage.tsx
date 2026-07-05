@@ -60,7 +60,14 @@ function renderMessage(item: ActivityEntry) {
     case 'friend_request':
       return (
         <>
-          <strong>{actor}</strong> quer ser seu amigo.
+          {item.actorId ? (
+            <Link className="activity-actor-link" to={`/u/${item.actorId}`}>
+              {actor}
+            </Link>
+          ) : (
+            <strong>{actor}</strong>
+          )}{' '}
+          quer ser seu amigo.
         </>
       );
     case 'friend_accepted':
@@ -166,6 +173,11 @@ export function ActivityPage() {
                         >
                           Recusar
                         </button>
+                        {item.actorId ? (
+                          <Link className="activity-item__profile" to={`/u/${item.actorId}`}>
+                            Ver perfil
+                          </Link>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>

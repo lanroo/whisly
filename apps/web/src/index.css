@@ -2253,6 +2253,12 @@ input {
   padding-top: 72px;
 }
 
+/* A barra "Explorar" é sticky (já ocupa espaço); o padding grande deixava
+   um vão enorme acima da busca. Espaçamento padrão de app. */
+.explore-page {
+  padding-top: 16px;
+}
+
 .explore-search,
 .collaborators-search {
   margin-top: 0;

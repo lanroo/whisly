@@ -86,6 +86,7 @@ input {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(199, 197, 206, 0.32);
   box-shadow: 0 16px 60px rgba(36, 41, 65, 0.09);
+  animation: page-enter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .eyebrow {
@@ -334,6 +335,26 @@ input {
   margin: 0 auto;
   /* Clearance do nav inferior fixo (72px) + respiro + safe-area de telas com notch. */
   padding: 24px 16px calc(88px + env(safe-area-inset-bottom, 0px));
+  /* Animação padrão ao abrir uma página (estilo app). */
+  animation: page-enter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .auth-card {
+    animation: none;
+  }
 }
 
 .section-link {
@@ -2626,10 +2647,60 @@ input {
 .profile-stat-card span {
   margin-top: 4px;
   color: #77767e;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 11px;
+  line-height: 15px;
+  /* Evita quebrar "Compartilhadas" no meio da palavra em telas estreitas. */
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
+.profile-stat-card--action {
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.profile-stat-card--action:hover {
+  transform: translateY(-2px);
+  border-color: rgba(199, 197, 206, 0.5);
+  box-shadow: 0 10px 22px rgba(36, 41, 65, 0.1);
+}
+
+.profile-stat-card--action:active {
+  transform: scale(0.98);
+}
+
+.profile-stat-card span .profile-stat-card__lock {
+  display: inline;
+  position: static;
+  margin-right: 3px;
+  font-size: 13px;
+  vertical-align: -2px;
+  color: #9a99a1;
+}
+
+.profile-stat-card__locked-value {
+  color: #9a99a1 !important;
+}
+
+.profile-stat-card__locked-value .material-symbols-outlined {
+  position: static;
+  font-size: 22px;
+}
+
+.person-item--link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Respiro acima da seção "Listas públicas" no perfil da pessoa. */
+.profile-page .explore-section {
+  margin-top: 28px;
+}
 
 .explore-creator-card {
   display: grid;

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { FriendsModal } from '../components/FriendsModal';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { TopBar } from '../components/TopBar';
 import {
   statusFromGraph,
   useFriendGraph,
+  useFriendsOf,
   useRespondFriend,
   useSendFriendRequest,
 } from '../features/friends/api';
@@ -22,11 +24,13 @@ export function UserProfilePage() {
   const { data: profile, isLoading } = usePublicProfile(userId);
   const { data: myLists } = useMyLists();
   const { data: graph } = useFriendGraph();
+  const friends = useFriendsOf(userId);
   const invite = useInviteToList();
   const sendRequest = useSendFriendRequest();
   const respond = useRespondFriend();
 
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const [invitingTo, setInvitingTo] = useState<string | null>(null);
 
   const isSelf = user?.id === userId;
@@ -148,6 +152,27 @@ export function UserProfilePage() {
               {!isSelf && !areFriends ? (
                 <p className="profile-hint">Vocês precisam ser amigos para compartilhar listas.</p>
               ) : null}
+
+              <div className="profile-stats">
+                <article className="profile-stat-card profile-stat-card--1">
+                  <strong>{lists.length}</strong>
+                  <span>Listas públicas</span>
+                </article>
+                <button
+                  className="profile-stat-card profile-stat-card--2 profile-stat-card--action"
+                  onClick={() => setFriendsOpen(true)}
+                  type="button"
+                >
+                  <strong>{friends.data?.length ?? 0}</strong>
+                  <span>Amigos</span>
+                </button>
+                <article className="profile-stat-card profile-stat-card--3">
+                  <strong className="profile-stat-card__locked-value">
+                    <MaterialIcon name="lock" />
+                  </strong>
+                  <span>Compartilhadas</span>
+                </article>
+              </div>
             </section>
 
             <section className="explore-section">
@@ -182,6 +207,15 @@ export function UserProfilePage() {
           </>
         )}
       </main>
+
+      <FriendsModal
+        emptyText={`${profile?.name ?? 'Esta pessoa'} ainda não tem amigos.`}
+        friends={friends.data ?? []}
+        loading={friends.isLoading}
+        onClose={() => setFriendsOpen(false)}
+        open={friendsOpen}
+        title={`Amigos de ${profile?.name ?? ''}`.trim()}
+      />
 
       <Modal onClose={() => setInviteOpen(false)} open={inviteOpen} title="Convidar para uma lista">
         {ownedLists.length === 0 ? (

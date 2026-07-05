@@ -29,26 +29,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithPassword = useCallback(
-    async (email: string, password: string): Promise<AuthResult> => {
+    async (identifier: string, password: string): Promise<AuthResult> => {
       if (!supabase) return { error: null };
+      // Login por e-mail ou @usuário: se não parecer e-mail, resolve o e-mail
+      // a partir do handle antes de autenticar.
+      let email = identifier.trim();
+      if (!email.includes('@') || email.startsWith('@')) {
+        const { data: resolved, error: lookupError } = await supabase.rpc('email_for_handle', {
+          _handle: identifier,
+        });
+        if (lookupError) return { error: lookupError.message };
+        if (!resolved) return { error: 'Usuário não encontrado.' };
+        email = resolved as string;
+      }
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error: error?.message ?? null };
     },
     [],
   );
 
-  const signUp = useCallback(async ({ email, password, name }: SignUpParams): Promise<AuthResult> => {
-    if (!supabase) return { error: null, needsConfirmation: false };
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
-    return {
-      error: error?.message ?? null,
-      needsConfirmation: !error && !data.session,
-    };
-  }, []);
+  const signUp = useCallback(
+    async ({ email, password, name, handle }: SignUpParams): Promise<AuthResult> => {
+      if (!supabase) return { error: null, needsConfirmation: false };
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name, handle } },
+      });
+      return {
+        error: error?.message ?? null,
+        needsConfirmation: !error && !data.session,
+      };
+    },
+    [],
+  );
 
   const signInWithOAuth = useCallback(async (provider: OAuthProvider): Promise<AuthResult> => {
     if (!supabase) return { error: 'Login social indisponível em modo demo.' };

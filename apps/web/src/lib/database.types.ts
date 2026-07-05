@@ -275,6 +275,8 @@ export type Database = {
     };
     Functions: {
       can_edit_list: { Args: { _list_id: string }; Returns: boolean };
+      email_for_handle: { Args: { _handle: string }; Returns: string | null };
+      is_handle_available: { Args: { _handle: string }; Returns: boolean };
       is_list_member: { Args: { _list_id: string }; Returns: boolean };
       is_list_owner: { Args: { _list_id: string }; Returns: boolean };
       request_friendship: { Args: { _addressee: string }; Returns: string };

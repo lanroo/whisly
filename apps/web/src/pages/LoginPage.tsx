@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 import { AuthSocialButtons } from '../components/AuthSocialButtons';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { PasswordField } from '../components/PasswordField';
@@ -37,10 +38,20 @@ export function LoginPage() {
 
   async function handleForgotPassword() {
     if (!email) {
-      toast.show({ title: 'Informe seu e-mail', description: 'Digite o e-mail para recuperar a senha.' });
+      toast.show({ title: 'Informe seu e-mail ou usuário', description: 'Digite o e-mail ou @usuário para recuperar a senha.' });
       return;
     }
-    const { error } = await resetPassword(email);
+    // Aceita @usuário: resolve para o e-mail antes de enviar a recuperação.
+    let target = email.trim();
+    if (supabase && (!target.includes('@') || target.startsWith('@'))) {
+      const { data: resolved } = await supabase.rpc('email_for_handle', { _handle: target });
+      if (!resolved) {
+        toast.show({ variant: 'error', title: 'Usuário não encontrado' });
+        return;
+      }
+      target = resolved as string;
+    }
+    const { error } = await resetPassword(target);
     toast.show(
       error
         ? { variant: 'error', title: 'Erro', description: error }
@@ -63,15 +74,17 @@ export function LoginPage() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="field">
-            <span>E-mail</span>
+            <span>E-mail ou usuário</span>
             <div className="field__control">
-              <MaterialIcon className="field__icon" name="mail" />
+              <MaterialIcon className="field__icon" name="person" />
               <input
-                autoComplete="email"
+                autoCapitalize="none"
+                autoComplete="username"
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="nome@exemplo.com"
+                placeholder="nome@exemplo.com ou @usuario"
                 required
-                type="email"
+                spellCheck={false}
+                type="text"
                 value={email}
               />
             </div>

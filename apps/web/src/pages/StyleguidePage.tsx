@@ -16,7 +16,8 @@ import './styleguide.css';
 
 const COLOR_TOKENS = [
   '--accent',
-  '--primary-violet',
+  '--accent-strong',
+  '--accent-soft',
   '--success',
   '--warning',
   '--danger',

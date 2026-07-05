@@ -17,7 +17,7 @@
   height: 64px;
   border-radius: 999px;
   background: var(--surface-low);
-  color: var(--primary-violet);
+  color: var(--accent);
 }
 
 .error-boundary__icon .material-symbols-outlined {
@@ -44,10 +44,10 @@
   border-radius: 999px;
   font-weight: 600;
   color: #fff;
-  background: var(--primary-violet);
+  background: var(--accent);
   transition: background 0.15s ease;
 }
 
 .error-boundary__button:hover {
-  background: var(--primary-violet-strong);
+  background: var(--accent-strong);
 }

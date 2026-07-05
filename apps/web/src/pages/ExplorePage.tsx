@@ -161,9 +161,9 @@ export function ExplorePage() {
         <h2>Listas Públicas</h2>
       </div>
       {isLoading ? (
-        <div className="explore-product-row">
-          <Skeleton height={200} width={160} />
-          <Skeleton height={200} width={160} />
+        <div className="explore-lists-grid">
+          <Skeleton height={180} width="100%" />
+          <Skeleton height={180} width="100%" />
         </div>
       ) : allLists.length === 0 ? (
         <EmptyState
@@ -172,23 +172,27 @@ export function ExplorePage() {
           title="Nada público ainda"
         />
       ) : (
-        <div className="explore-product-row explore-product-row--wrap">
+        <div className="explore-lists-grid">
           {allLists.map((list) => (
             <button
-              className="explore-product-card explore-product-card--list"
+              className="explore-list-card"
               key={list.id}
               onClick={() => navigate(`/lists/${list.id}`)}
               type="button"
             >
-              <div className="explore-product-card__media">
+              <div className="explore-list-card__media">
                 <img alt={list.title} src={list.image} />
+                <span className="explore-list-card__count">
+                  <MaterialIcon name="redeem" />
+                  {list.items}
+                </span>
               </div>
-              <div className="explore-product-card__details">
-                <p>{list.owner.name}</p>
+              <div className="explore-list-card__body">
                 <h3>{list.title}</h3>
-                <strong>
-                  {list.items} {list.items === 1 ? 'item' : 'itens'}
-                </strong>
+                <div className="explore-list-card__owner">
+                  <Avatar name={list.owner.name} size="sm" src={list.owner.avatarUrl ?? undefined} />
+                  <span>{list.owner.name}</span>
+                </div>
               </div>
             </button>
           ))}

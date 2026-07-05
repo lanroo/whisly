@@ -56,6 +56,9 @@ export function Modal({ open, onClose, title, children, className = '' }: ModalP
     [onClose],
   );
 
+  // Trava o scroll e faz o foco inicial APENAS quando o modal abre.
+  // (Não depende de handleKeyDown para não re-rodar a cada render do pai —
+  // isso roubava o foco do input a cada tecla digitada.)
   useEffect(() => {
     if (!open) {
       return;
@@ -64,17 +67,24 @@ export function Modal({ open, onClose, title, children, className = '' }: ModalP
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const { overflow } = document.body.style;
     document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
 
     const dialog = dialogRef.current;
     const firstFocusable = dialog?.querySelector<HTMLElement>(FOCUSABLE);
     (firstFocusable ?? dialog)?.focus();
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = overflow;
       previouslyFocused.current?.focus();
     };
+  }, [open]);
+
+  // Escape + focus trap (Tab). Re-liga quando o handler muda, sem tocar no foco.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, handleKeyDown]);
 
   if (!open) {

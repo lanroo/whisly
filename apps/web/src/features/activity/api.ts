@@ -7,7 +7,8 @@ export type ActivityType =
   | 'collaborator_added'
   | 'item_added'
   | 'friend_request'
-  | 'friend_accepted';
+  | 'friend_accepted'
+  | 'list_invite';
 
 export interface ActivityEntry {
   id: string;
@@ -18,6 +19,7 @@ export interface ActivityEntry {
   actorId: string | null;
   actorName: string | null;
   friendshipId: string | null;
+  collaboratorId: string | null;
   read: boolean;
   createdAt: string;
 }
@@ -27,7 +29,12 @@ interface ActivityRow {
   type: string;
   list_id: string | null;
   actor_id: string | null;
-  metadata: { list_title?: string; item_title?: string; friendship_id?: string } | null;
+  metadata: {
+    list_title?: string;
+    item_title?: string;
+    friendship_id?: string;
+    collaborator_id?: string;
+  } | null;
   read: boolean;
   created_at: string;
 }
@@ -60,6 +67,7 @@ async function fetchActivity(userId: string): Promise<ActivityEntry[]> {
     actorId: r.actor_id,
     actorName: r.actor_id ? names.get(r.actor_id) ?? 'Alguém' : null,
     friendshipId: r.metadata?.friendship_id ?? null,
+    collaboratorId: r.metadata?.collaborator_id ?? null,
     read: r.read,
     createdAt: r.created_at,
   }));

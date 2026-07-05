@@ -11,7 +11,7 @@ import {
   useRespondFriend,
   useSendFriendRequest,
 } from '../features/friends/api';
-import { useMyLists, useInviteToList } from '../features/lists/api';
+import { useListInviteStatuses, useMyLists, useInviteToList } from '../features/lists/api';
 import { usePublicProfile } from '../features/profile/api';
 import { useAuth } from '../shared/auth';
 import { Button, EmptyState, Modal, Skeleton, useToast } from '../shared/ui';
@@ -24,6 +24,7 @@ export function UserProfilePage() {
   const { data: profile, isLoading } = usePublicProfile(userId);
   const { data: myLists } = useMyLists();
   const { data: graph } = useFriendGraph();
+  const { data: inviteStatuses } = useListInviteStatuses(userId);
   const friends = useFriendsOf(userId);
   const invite = useInviteToList();
   const sendRequest = useSendFriendRequest();
@@ -85,8 +86,11 @@ export function UserProfilePage() {
     setInvitingTo(listId);
     try {
       await invite.mutateAsync({ listId, userId, role: 'editor' });
-      setInviteOpen(false);
-      toast.show({ variant: 'success', title: `${profile?.name ?? 'Pessoa'} convidada` });
+      toast.show({
+        variant: 'success',
+        title: 'Convite enviado',
+        description: `${profile?.name ?? 'A pessoa'} vai receber na Atividade.`,
+      });
     } catch (error) {
       toast.show({
         variant: 'error',
@@ -231,26 +235,56 @@ export function UserProfilePage() {
           />
         ) : (
           <div className="guard__lists">
-            {ownedLists.map((list) => (
-              <button
-                className="guard__list-row"
-                disabled={invitingTo !== null}
-                key={list.id}
-                onClick={() => handleInvite(list.id)}
-                type="button"
-              >
-                <img alt="" className="guard__list-thumb" src={list.image} />
-                <div className="guard__list-info">
-                  <strong>{list.title}</strong>
-                  <span>{list.items} itens</span>
-                </div>
-                {invitingTo === list.id ? (
-                  <span className="additem-spinner" />
-                ) : (
-                  <MaterialIcon name="group_add" />
-                )}
-              </button>
-            ))}
+            {ownedLists.map((list) => {
+              const st = inviteStatuses?.[list.id];
+              const info = (
+                <>
+                  <img alt="" className="guard__list-thumb" src={list.image} />
+                  <div className="guard__list-info">
+                    <strong>{list.title}</strong>
+                    <span>{list.items} itens</span>
+                  </div>
+                </>
+              );
+              if (st === 'accepted') {
+                return (
+                  <div className="guard__list-row guard__list-row--static" key={list.id}>
+                    {info}
+                    <span className="person-tag person-tag--friend">
+                      <MaterialIcon name="check" />
+                      Na lista
+                    </span>
+                  </div>
+                );
+              }
+              if (st === 'pending') {
+                return (
+                  <div className="guard__list-row guard__list-row--static" key={list.id}>
+                    {info}
+                    <span className="person-tag">
+                      <MaterialIcon name="schedule" />
+                      Convite enviado
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <button
+                  className="guard__list-row"
+                  disabled={invitingTo !== null}
+                  key={list.id}
+                  onClick={() => handleInvite(list.id)}
+                  type="button"
+                >
+                  {info}
+                  {invitingTo === list.id ? (
+                    <span className="additem-spinner" />
+                  ) : (
+                    <MaterialIcon name="group_add" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </Modal>

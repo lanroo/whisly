@@ -53,6 +53,7 @@ export type Database = {
           id: string;
           list_id: string;
           role: Database['public']['Enums']['collaborator_role'];
+          status: string;
           user_id: string;
         };
         Insert: {
@@ -60,6 +61,7 @@ export type Database = {
           id?: string;
           list_id: string;
           role?: Database['public']['Enums']['collaborator_role'];
+          status?: string;
           user_id: string;
         };
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           id?: string;
           list_id?: string;
           role?: Database['public']['Enums']['collaborator_role'];
+          status?: string;
           user_id?: string;
         };
         Relationships: [
@@ -293,6 +296,7 @@ export type Database = {
       is_list_member: { Args: { _list_id: string }; Returns: boolean };
       is_list_owner: { Args: { _list_id: string }; Returns: boolean };
       request_friendship: { Args: { _addressee: string }; Returns: string };
+      respond_list_invite: { Args: { _collaborator: string; _accept: boolean }; Returns: string };
     };
     Enums: {
       collaborator_role: 'owner' | 'editor' | 'viewer';

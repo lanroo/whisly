@@ -4735,6 +4735,11 @@ a.collaborator-row {
   color: #0b8f63;
 }
 
+.activity-item__icon--list_invite {
+  background: rgba(36, 41, 65, 0.1);
+  color: #242941;
+}
+
 .activity-item__icon .material-symbols-outlined {
   font-size: 20px;
 }
@@ -5085,6 +5090,16 @@ a.collaborator-row {
 .guard__list-row:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* Linha estática (pessoa já convidada / já na lista) — sem hover/click. */
+.guard__list-row--static {
+  cursor: default;
+  background: #f7f7fa;
+}
+
+.guard__list-row--static .person-tag {
+  flex: none;
 }
 
 .guard__list-thumb {

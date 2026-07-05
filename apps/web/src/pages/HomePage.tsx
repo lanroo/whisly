@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { MyAvatar } from '../components/MyAvatar';
+import { useUnreadActivityCount } from '../features/activity/api';
 import {
   fetchLinkPreview,
   useAddItemToList,
@@ -12,7 +13,15 @@ import {
 } from '../features/lists/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import type { WishlistSummary } from '../types/models';
-import { Button, Modal, Skeleton, useToast } from '../shared/ui';
+import { Button, Modal, SegmentedControl, Skeleton, useToast } from '../shared/ui';
+
+type ListFilter = 'all' | 'private' | 'public';
+
+const LIST_FILTERS: { value: ListFilter; label: string }[] = [
+  { value: 'all', label: 'Todas' },
+  { value: 'private', label: 'Privadas' },
+  { value: 'public', label: 'Públicas' },
+];
 
 /** Passos de onboarding exibidos para quem ainda não tem listas. */
 const JOURNEY = [
@@ -44,9 +53,14 @@ function ListTile({ list, shape }: { list: WishlistSummary; shape: ListTileShape
     >
       <div className={`wishly-list-card__media wishly-list-card__media--${shape}`}>
         <img alt={list.title} src={list.image} />
+        {list.privacy ? (
+          <span className="wishly-list-card__badge">
+            <MaterialIcon name={list.privacy === 'Público' ? 'public' : 'lock'} />
+            {list.privacy}
+          </span>
+        ) : null}
       </div>
       <div className="wishly-list-card__meta">
-        {list.privacy ? <span className="wishly-list-card__label">{list.privacy}</span> : null}
         <h4 className="wishly-list-card__title">{list.title}</h4>
         <span className="wishly-list-card__count">{list.items} itens</span>
       </div>
@@ -62,10 +76,22 @@ export function HomePage() {
   const addItemToList = useAddItemToList();
   const createList = useCreateList();
   const sharedLists = shared ?? [];
-  const allMyLists = lists ?? [];
+  const allMyLists = useMemo(() => lists ?? [], [lists]);
   const myLists = allMyLists.slice(0, 6);
   const hasNoLists = !isLoading && myLists.length === 0;
+  const { data: unread = 0 } = useUnreadActivityCount();
   const [link, setLink] = useState('');
+  const [listFilter, setListFilter] = useState<ListFilter>('all');
+
+  const filteredLists = useMemo(() => {
+    const base =
+      listFilter === 'public'
+        ? allMyLists.filter((l) => l.privacy === 'Público')
+        : listFilter === 'private'
+          ? allMyLists.filter((l) => l.privacy !== 'Público')
+          : allMyLists;
+    return base.slice(0, 6);
+  }, [allMyLists, listFilter]);
 
   // Modal "Guardar produto"
   const [guardOpen, setGuardOpen] = useState(false);
@@ -181,9 +207,17 @@ export function HomePage() {
       <header className="wishly-home-topbar">
         <div className="wishly-home-topbar__inner">
           <span className="wishly-home-topbar__brand">Wishly</span>
-          <Link aria-label="Seu perfil" className="wishly-home-topbar__avatar" to="/profile">
-            <MyAvatar size="sm" />
-          </Link>
+          <div className="wishly-home-topbar__actions">
+            <Link aria-label="Notificações" className="icon-button bell-wrap" to="/activity">
+              <MaterialIcon name="notifications" />
+              {unread > 0 ? (
+                <span className="bell-wrap__badge">{unread > 9 ? '9+' : unread}</span>
+              ) : null}
+            </Link>
+            <Link aria-label="Seu perfil" className="wishly-home-topbar__avatar" to="/profile">
+              <MyAvatar size="sm" />
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -235,25 +269,32 @@ export function HomePage() {
               </Link>
             </div>
 
+            <SegmentedControl
+              ariaLabel="Filtrar listas"
+              className="wishly-lists__filter"
+              onChange={setListFilter}
+              options={LIST_FILTERS}
+              value={listFilter}
+            />
+
             {isLoading ? (
-              <div className="wishly-lists__grid">
-                <div className="wishly-list-card--hero">
-                  <Skeleton height={200} width="100%" />
-                </div>
-                <Skeleton height={180} width="100%" />
-                <Skeleton height={180} width="100%" />
+              <div className="wishly-lists__stack">
+                <Skeleton height={220} width="100%" />
+                <Skeleton height={220} width="100%" />
               </div>
+            ) : filteredLists.length === 0 ? (
+              <p className="explore-empty-hint">
+                Nenhuma lista {listFilter === 'public' ? 'pública' : 'privada'} ainda.
+              </p>
             ) : (
-              <div className="wishly-lists__grid">
-                <ListTile list={myLists[0]} shape="hero" />
-                {myLists[1] ? <ListTile list={myLists[1]} shape="tall" /> : null}
-                <div className="wishly-lists__col">
-                  {myLists[2] ? <ListTile list={myLists[2]} shape="square" /> : null}
-                  <Link className="wishly-list-card__add" to="/lists/new">
-                    <span>Adicionar nova</span>
-                    <MaterialIcon name="arrow_forward" />
-                  </Link>
-                </div>
+              <div className="wishly-lists__stack">
+                {filteredLists.map((list) => (
+                  <ListTile key={list.id} list={list} shape="hero" />
+                ))}
+                <Link className="wishly-list-card__add" to="/lists/new">
+                  <span>Adicionar nova</span>
+                  <MaterialIcon name="arrow_forward" />
+                </Link>
               </div>
             )}
           </section>

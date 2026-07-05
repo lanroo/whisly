@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from './app/RequireAuth';
 import { ActivityPage } from './pages/ActivityPage';
 import { CollaboratorsPage } from './pages/CollaboratorsPage';
-import { CreateListAdvancedPage } from './pages/CreateListAdvancedPage';
 import { CreateListPage } from './pages/CreateListPage';
 import { ExplorePage } from './pages/ExplorePage';
 import { HomePage } from './pages/HomePage';
@@ -36,7 +35,6 @@ function App() {
         <Route path="/collaborators" element={<CollaboratorsPage />} />
         <Route path="/lists" element={<ListsPage />} />
         <Route path="/lists/new" element={<CreateListPage />} />
-        <Route path="/lists/new/advanced" element={<CreateListAdvancedPage />} />
         <Route path="/lists/:listId" element={<ListDetailsPage />} />
       </Route>
 

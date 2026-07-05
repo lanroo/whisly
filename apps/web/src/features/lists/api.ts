@@ -90,6 +90,9 @@ export interface UpdateListInput {
   title?: string;
   description?: string | null;
   privacy?: ListPrivacy;
+  showPrices?: boolean;
+  showPriority?: boolean;
+  notifyNewItems?: boolean;
 }
 
 async function updateList(listId: string, input: UpdateListInput): Promise<void> {
@@ -98,6 +101,9 @@ async function updateList(listId: string, input: UpdateListInput): Promise<void>
   if (input.title !== undefined) patch.title = input.title.trim();
   if (input.description !== undefined) patch.description = input.description;
   if (input.privacy !== undefined) patch.privacy = input.privacy;
+  if (input.showPrices !== undefined) patch.show_prices = input.showPrices;
+  if (input.showPriority !== undefined) patch.show_priority = input.showPriority;
+  if (input.notifyNewItems !== undefined) patch.notify_new_items = input.notifyNewItems;
 
   const { error } = await supabase.from('lists').update(patch).eq('id', listId);
   if (error) throw error;
@@ -202,6 +208,9 @@ export interface ListSummary {
   description: string | null;
   privacy: ListPrivacy;
   ownerId: string;
+  showPrices: boolean;
+  showPriority: boolean;
+  notifyNewItems: boolean;
 }
 
 function mapItem(row: ItemRowWithReservation): ListItem {
@@ -223,7 +232,7 @@ async function fetchList(listId: string): Promise<ListSummary | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from('lists')
-    .select('id, title, description, privacy, owner_id')
+    .select('id, title, description, privacy, owner_id, show_prices, show_priority, notify_new_items')
     .eq('id', listId)
     .maybeSingle();
 
@@ -235,6 +244,9 @@ async function fetchList(listId: string): Promise<ListSummary | null> {
     description: data.description,
     privacy: data.privacy,
     ownerId: data.owner_id,
+    showPrices: data.show_prices,
+    showPriority: data.show_priority,
+    notifyNewItems: data.notify_new_items,
   };
 }
 

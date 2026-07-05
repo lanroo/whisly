@@ -159,8 +159,11 @@ export type Database = {
           created_at: string;
           description: string | null;
           id: string;
+          notify_new_items: boolean;
           owner_id: string;
           privacy: Database['public']['Enums']['list_privacy'];
+          show_prices: boolean;
+          show_priority: boolean;
           title: string;
           updated_at: string;
         };
@@ -169,8 +172,11 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          notify_new_items?: boolean;
           owner_id: string;
           privacy?: Database['public']['Enums']['list_privacy'];
+          show_prices?: boolean;
+          show_priority?: boolean;
           title: string;
           updated_at?: string;
         };
@@ -179,8 +185,11 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          notify_new_items?: boolean;
           owner_id?: string;
           privacy?: Database['public']['Enums']['list_privacy'];
+          show_prices?: boolean;
+          show_priority?: boolean;
           title?: string;
           updated_at?: string;
         };

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { CreateFlowHeader } from '../components/CreateFlowHeader';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
@@ -144,12 +144,6 @@ export function CreateListPage() {
             </div>
           </section>
 
-          <section className="create-list-advanced-link">
-            <span>Configurações Avançadas</span>
-            <Link className="create-list-advanced-link__trigger" to="/lists/new/advanced">
-              <MaterialIcon name="expand_more" />
-            </Link>
-          </section>
         </form>
       </main>
 

@@ -50,8 +50,14 @@ export function ExplorePage() {
 
   async function handleAdd(personId: string) {
     try {
-      await sendRequest.mutateAsync(personId);
-      toast.show({ variant: 'success', title: 'Solicitação enviada' });
+      const result = await sendRequest.mutateAsync(personId);
+      if (result === 'accepted') {
+        toast.show({ variant: 'success', title: 'Agora vocês são amigos' });
+      } else if (result === 'friends') {
+        toast.show({ title: 'Vocês já são amigos' });
+      } else {
+        toast.show({ variant: 'success', title: 'Solicitação enviada' });
+      }
     } catch (error) {
       toast.show({
         variant: 'error',

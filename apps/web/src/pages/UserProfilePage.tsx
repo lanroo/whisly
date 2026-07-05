@@ -36,8 +36,11 @@ export function UserProfilePage() {
   async function handleFriendAction() {
     try {
       if (friendInfo.status === 'none') {
-        await sendRequest.mutateAsync(userId!);
-        toast.show({ variant: 'success', title: 'Solicitação enviada' });
+        const result = await sendRequest.mutateAsync(userId!);
+        toast.show({
+          variant: 'success',
+          title: result === 'accepted' ? 'Agora vocês são amigos' : 'Solicitação enviada',
+        });
       } else if (friendInfo.status === 'pending_received' && friendInfo.friendshipId) {
         await respond.mutateAsync({ friendshipId: friendInfo.friendshipId, accept: true });
         toast.show({ variant: 'success', title: 'Agora vocês são amigos' });

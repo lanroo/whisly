@@ -173,10 +173,6 @@ export function UserProfilePage() {
                   <span>Compartilhadas</span>
                 </article>
               </div>
-              <p className="profile-stats-hint">
-                <MaterialIcon name="lock" />
-                Listas privadas e compartilhadas não aparecem no perfil.
-              </p>
             </section>
 
             <section className="explore-section">

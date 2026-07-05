@@ -184,10 +184,6 @@ export function ProfilePage() {
               );
             })}
           </div>
-          <p className="profile-stats-hint">
-            <MaterialIcon name="lock" />
-            Listas compartilhadas são privadas — só quem participa vê.
-          </p>
         </section>
 
         <section className="settings-section profile-menu">

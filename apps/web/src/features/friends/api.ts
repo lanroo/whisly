@@ -150,6 +150,29 @@ export function useRespondFriend() {
   });
 }
 
+/**
+ * Amigos aceitos de um usuário qualquer (via RPC list_friends).
+ * Funciona tanto para o próprio usuário quanto para outras pessoas
+ * (usado nos perfis para mostrar quantos e quem são os amigos).
+ */
+export function useFriendsOf(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['friends', 'of', userId],
+    queryFn: async (): Promise<Person[]> => {
+      if (!supabase || !userId) return [];
+      const { data, error } = await supabase.rpc('list_friends', { _user: userId });
+      if (error) throw error;
+      return (data ?? []).map((p) => ({
+        id: p.id,
+        name: p.name ?? 'Usuário',
+        handle: p.handle,
+        avatarUrl: p.avatar_url,
+      }));
+    },
+    enabled: Boolean(userId),
+  });
+}
+
 /** Busca pessoas por nome/@usuário (para adicionar). */
 export function useSearchPeople(term: string) {
   const { user } = useAuth();

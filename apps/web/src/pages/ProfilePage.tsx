@@ -1,8 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { FriendsModal } from '../components/FriendsModal';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { SettingsSelectRow } from '../components/SettingsSelectRow';
+import { useFriendsOf } from '../features/friends/api';
 import { uploadItemImage } from '../features/lists/api';
 import { useMyProfile, useUpdateProfile } from '../features/profile/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
@@ -14,7 +16,9 @@ export function ProfilePage() {
   const { data: profile, isLoading } = useMyProfile();
   const updateProfile = useUpdateProfile();
 
+  const friends = useFriendsOf(profile?.id);
   const [editing, setEditing] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const [name, setName] = useState('');
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
@@ -77,8 +81,13 @@ export function ProfilePage() {
 
   const stats = [
     { id: 'lists', label: 'Listas', value: profile?.stats.lists ?? 0 },
-    { id: 'items', label: 'Itens', value: profile?.stats.items ?? 0 },
-    { id: 'shared', label: 'Compartilhadas', value: profile?.stats.shared ?? 0 },
+    {
+      id: 'friends',
+      label: 'Amigos',
+      value: friends.data?.length ?? 0,
+      onClick: () => setFriendsOpen(true),
+    },
+    { id: 'shared', label: 'Compartilhadas', value: profile?.stats.shared ?? 0, locked: true },
   ];
 
   const handleLabel = profile?.handle ? `@${profile.handle}` : 'Defina seu @usuário';
@@ -147,13 +156,38 @@ export function ProfilePage() {
           </div>
 
           <div className="profile-stats">
-            {stats.map((stat, index) => (
-              <article key={stat.id} className={`profile-stat-card profile-stat-card--${index + 1}`}>
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </article>
-            ))}
+            {stats.map((stat, index) => {
+              const body = (
+                <>
+                  <strong>{stat.value}</strong>
+                  <span>
+                    {stat.locked ? (
+                      <MaterialIcon className="profile-stat-card__lock" name="lock" />
+                    ) : null}
+                    {stat.label}
+                  </span>
+                </>
+              );
+              return stat.onClick ? (
+                <button
+                  key={stat.id}
+                  className={`profile-stat-card profile-stat-card--${index + 1} profile-stat-card--action`}
+                  onClick={stat.onClick}
+                  type="button"
+                >
+                  {body}
+                </button>
+              ) : (
+                <article key={stat.id} className={`profile-stat-card profile-stat-card--${index + 1}`}>
+                  {body}
+                </article>
+              );
+            })}
           </div>
+          <p className="profile-stats-hint">
+            <MaterialIcon name="lock" />
+            Listas compartilhadas são privadas — só quem participa vê.
+          </p>
         </section>
 
         <section className="settings-section profile-menu">
@@ -165,6 +199,15 @@ export function ProfilePage() {
           </div>
         </section>
       </main>
+
+      <FriendsModal
+        emptyText="Você ainda não tem amigos. Encontre pessoas em Explorar."
+        friends={friends.data ?? []}
+        loading={friends.isLoading}
+        onClose={() => setFriendsOpen(false)}
+        open={friendsOpen}
+        title="Seus amigos"
+      />
 
       <Modal onClose={() => setEditing(false)} open={editing} title="Editar perfil">
         <form className="profile-edit-form" onSubmit={handleSaveProfile}>

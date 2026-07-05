@@ -198,7 +198,7 @@ export function ExplorePage() {
   );
 
   return (
-    <AppShell activeNavKey="explore" className="explore-shell" enablePullToRefresh navItems={MAIN_NAV_ITEMS}>
+    <AppShell activeNavKey="explore" className="explore-shell" enablePullToRefresh navItems={MAIN_NAV_ITEMS} showFab={false}>
       <header className="explore-topbar">
         <div className="explore-topbar__inner">
           <div className="explore-topbar__spacer" />

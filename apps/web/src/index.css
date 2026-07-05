@@ -3160,6 +3160,80 @@ input {
     margin-left: auto;
   }
 
+  .app-top-nav__account {
+    position: relative;
+  }
+
+  .app-top-nav__avatar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 4px 3px 3px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .app-top-nav__avatar-btn:hover,
+  .app-top-nav__avatar-btn.is-open {
+    background: var(--surface-low);
+    border-color: var(--line);
+  }
+
+  .app-top-nav__caret {
+    font-size: 18px;
+    color: var(--muted);
+  }
+
+  .app-top-nav__menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 208px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--surface-strong);
+    box-shadow: var(--shadow-2);
+    z-index: var(--z-nav);
+  }
+
+  .app-top-nav__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--text);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-align: left;
+    transition: background 0.15s ease;
+  }
+
+  .app-top-nav__menu-item .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--muted);
+  }
+
+  .app-top-nav__menu-item:hover {
+    background: var(--surface-low);
+  }
+
+  .app-top-nav__menu-item--danger {
+    color: var(--danger);
+  }
+
+  .app-top-nav__menu-item--danger .material-symbols-outlined {
+    color: var(--danger);
+  }
+
   /* Evita cabeçalho duplicado: esconde as topbars mobile no desktop */
   .wishly-home-topbar,
   .explore-topbar,

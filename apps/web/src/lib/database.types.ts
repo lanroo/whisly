@@ -277,6 +277,7 @@ export type Database = {
       can_edit_list: { Args: { _list_id: string }; Returns: boolean };
       is_list_member: { Args: { _list_id: string }; Returns: boolean };
       is_list_owner: { Args: { _list_id: string }; Returns: boolean };
+      request_friendship: { Args: { _addressee: string }; Returns: string };
     };
     Enums: {
       collaborator_role: 'owner' | 'editor' | 'viewer';

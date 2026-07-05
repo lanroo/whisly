@@ -100,22 +100,29 @@ export function friendsFromGraph(graph: FriendGraph | undefined, meId: string | 
     .filter(Boolean);
 }
 
-/** Envia solicitação de amizade. */
+/** Resultado de solicitar amizade (via RPC atômica). */
+export type FriendRequestResult = 'pending' | 'accepted' | 'friends';
+
+/**
+ * Envia solicitação de amizade de forma idempotente (RPC no banco).
+ * Nunca falha por duplicidade: se a outra pessoa já pediu, aceita
+ * automaticamente; se já são amigos ou já foi enviada, é no-op.
+ */
 export function useSendFriendRequest() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   return useMutation({
-    mutationFn: async (addresseeId: string) => {
+    mutationFn: async (addresseeId: string): Promise<FriendRequestResult> => {
       if (!supabase) throw new Error('Supabase não configurado.');
-      const { error } = await supabase
-        .from('friendships')
-        .insert({ requester_id: user!.id, addressee_id: addresseeId, status: 'pending' });
-      if (error) {
-        if (error.code === '23505') throw new Error('Solicitação já existe.');
-        throw error;
-      }
+      const { data, error } = await supabase.rpc('request_friendship', {
+        _addressee: addresseeId,
+      });
+      if (error) throw error;
+      return (data as FriendRequestResult) ?? 'pending';
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['friends'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['activity'] });
+    },
   });
 }
 

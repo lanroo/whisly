@@ -161,9 +161,9 @@ export function ExplorePage() {
         <h2>Listas Públicas</h2>
       </div>
       {isLoading ? (
-        <div className="explore-product-row">
-          <Skeleton height={200} width={160} />
-          <Skeleton height={200} width={160} />
+        <div className="explore-lists-grid">
+          <Skeleton height={180} width="100%" />
+          <Skeleton height={180} width="100%" />
         </div>
       ) : allLists.length === 0 ? (
         <EmptyState
@@ -172,23 +172,27 @@ export function ExplorePage() {
           title="Nada público ainda"
         />
       ) : (
-        <div className="explore-product-row explore-product-row--wrap">
+        <div className="explore-lists-grid">
           {allLists.map((list) => (
             <button
-              className="explore-product-card explore-product-card--list"
+              className="explore-list-card"
               key={list.id}
               onClick={() => navigate(`/lists/${list.id}`)}
               type="button"
             >
-              <div className="explore-product-card__media">
+              <div className="explore-list-card__media">
                 <img alt={list.title} src={list.image} />
+                <span className="explore-list-card__count">
+                  <MaterialIcon name="redeem" />
+                  {list.items}
+                </span>
               </div>
-              <div className="explore-product-card__details">
-                <p>{list.owner.name}</p>
+              <div className="explore-list-card__body">
                 <h3>{list.title}</h3>
-                <strong>
-                  {list.items} {list.items === 1 ? 'item' : 'itens'}
-                </strong>
+                <div className="explore-list-card__owner">
+                  <Avatar name={list.owner.name} size="sm" src={list.owner.avatarUrl ?? undefined} />
+                  <span>{list.owner.name}</span>
+                </div>
               </div>
             </button>
           ))}
@@ -288,31 +292,58 @@ export function ExplorePage() {
         ) : (
           <>
             <section className="explore-connect">
-              <div className="explore-connect__icon">
-                <MaterialIcon name="group" />
+              <div className="explore-connect__card">
+                <div className="explore-connect__avatars" aria-hidden="true">
+                  <span className="explore-connect__avatar explore-connect__avatar--side">
+                    <MaterialIcon name="person" />
+                  </span>
+                  <span className="explore-connect__avatar explore-connect__avatar--side">
+                    <MaterialIcon name="person" />
+                  </span>
+                  <span className="explore-connect__avatar explore-connect__avatar--main">
+                    <MaterialIcon name="favorite" />
+                  </span>
+                </div>
+                <h2>Encontre seus amigos</h2>
+                <p>
+                  Conecte-se pelo @usuário e as listas e novidades das pessoas aparecem aqui.
+                </p>
+                <div className="explore-connect__actions">
+                  <button
+                    className="primary-button primary-button--full"
+                    onClick={handleInvite}
+                    type="button"
+                  >
+                    <MaterialIcon name="ios_share" />
+                    <span>Convidar amigos</span>
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => searchRef.current?.focus()}
+                    type="button"
+                  >
+                    <MaterialIcon name="person_search" />
+                    <span>Buscar por @usuário</span>
+                  </button>
+                </div>
               </div>
-              <h2>Encontre seus amigos</h2>
-              <p>
-                Adicione pessoas pelo @usuário. Quando vocês se conectarem, as listas e novidades
-                delas aparecem aqui.
-              </p>
-              <div className="explore-connect__actions">
-                <button
-                  className="primary-button primary-button--full"
-                  onClick={handleInvite}
-                  type="button"
-                >
-                  <MaterialIcon name="ios_share" />
-                  <span>Convidar amigos</span>
-                </button>
-                <button
-                  className="secondary-button"
-                  onClick={() => searchRef.current?.focus()}
-                  type="button"
-                >
-                  <MaterialIcon name="person_search" />
-                  <span>Buscar por @usuário</span>
-                </button>
+
+              <div className="explore-steps">
+                <p className="explore-steps__label">Como funciona</p>
+                <ol className="explore-steps__list">
+                  <li>
+                    <span className="explore-steps__num">1</span>
+                    Busque a pessoa pelo @usuário
+                  </li>
+                  <li>
+                    <span className="explore-steps__num">2</span>
+                    Envie a solicitação de amizade
+                  </li>
+                  <li>
+                    <span className="explore-steps__num">3</span>
+                    Vejam as listas um do outro
+                  </li>
+                </ol>
               </div>
             </section>
 

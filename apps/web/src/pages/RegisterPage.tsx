@@ -1,15 +1,22 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 import { AuthSocialButtons } from '../components/AuthSocialButtons';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { PasswordField } from '../components/PasswordField';
 import { useAuth } from '../shared/auth';
 import { useToast } from '../shared/ui';
 
+/** Normaliza igual ao servidor: minúsculo, sem @, só [a-z0-9_.]. */
+function normalizeHandle(raw: string): string {
+  return raw.trim().replace(/^@+/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
+}
+
 export function RegisterPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const { signUp, signInWithOAuth } = useAuth();
+  const [handle, setHandle] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -19,6 +26,16 @@ export function RegisterPage() {
     const email = String(form.get('email') ?? '');
     const password = String(form.get('password') ?? '');
     const confirm = String(form.get('confirm') ?? '');
+    const cleanHandle = normalizeHandle(handle);
+
+    if (cleanHandle.length < 3) {
+      toast.show({
+        variant: 'error',
+        title: 'Usuário inválido',
+        description: 'Use ao menos 3 caracteres: letras, números, ponto ou _.',
+      });
+      return;
+    }
 
     if (password !== confirm) {
       toast.show({ variant: 'error', title: 'As senhas não coincidem' });
@@ -26,7 +43,29 @@ export function RegisterPage() {
     }
 
     setSubmitting(true);
-    const { error, needsConfirmation } = await signUp({ email, password, name });
+
+    // Garante que o @usuário ainda está livre antes de criar a conta.
+    if (supabase) {
+      const { data: available, error: checkError } = await supabase.rpc('is_handle_available', {
+        _handle: cleanHandle,
+      });
+      if (checkError) {
+        setSubmitting(false);
+        toast.show({ variant: 'error', title: 'Não foi possível validar o usuário', description: checkError.message });
+        return;
+      }
+      if (!available) {
+        setSubmitting(false);
+        toast.show({
+          variant: 'error',
+          title: 'Usuário indisponível',
+          description: `@${cleanHandle} já está em uso. Escolha outro.`,
+        });
+        return;
+      }
+    }
+
+    const { error, needsConfirmation } = await signUp({ email, password, name, handle: cleanHandle });
     setSubmitting(false);
 
     if (error) {
@@ -75,6 +114,25 @@ export function RegisterPage() {
               <MaterialIcon className="field__icon" name="person" />
               <input autoComplete="name" name="name" placeholder="Seu nome" required type="text" />
             </div>
+          </label>
+
+          <label className="field">
+            <span>Usuário</span>
+            <div className="field__control">
+              <MaterialIcon className="field__icon" name="alternate_email" />
+              <input
+                autoCapitalize="none"
+                autoComplete="username"
+                name="handle"
+                onChange={(event) => setHandle(event.target.value)}
+                placeholder="seu_usuario"
+                required
+                spellCheck={false}
+                type="text"
+                value={handle}
+              />
+            </div>
+            <small className="field__hint">Como as pessoas vão te encontrar: @{normalizeHandle(handle) || 'usuario'}</small>
           </label>
 
           <label className="field">

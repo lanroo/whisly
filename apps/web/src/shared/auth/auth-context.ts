@@ -13,6 +13,8 @@ export interface SignUpParams {
   email: string;
   password: string;
   name: string;
+  /** @usuário escolhido no cadastro (normalizado no servidor). */
+  handle: string;
 }
 
 export interface AuthContextValue {
@@ -21,7 +23,8 @@ export interface AuthContextValue {
   loading: boolean;
   user: User | null;
   session: Session | null;
-  signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
+  /** Aceita e-mail ou @usuário como identificador. */
+  signInWithPassword: (identifier: string, password: string) => Promise<AuthResult>;
   signUp: (params: SignUpParams) => Promise<AuthResult>;
   signInWithOAuth: (provider: OAuthProvider) => Promise<AuthResult>;
   signOut: () => Promise<void>;

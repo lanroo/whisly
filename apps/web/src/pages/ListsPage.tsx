@@ -20,7 +20,14 @@ export function ListsPage() {
   }, [lists, search]);
 
   return (
-    <AppShell activeNavKey="lists" className="lists-shell" enablePullToRefresh navItems={MAIN_NAV_ITEMS}>
+    <AppShell
+      activeNavKey="lists"
+      className="lists-shell"
+      enablePullToRefresh
+      fabLabel="Nova lista"
+      fabTo="/lists/new"
+      navItems={MAIN_NAV_ITEMS}
+    >
       <TopBar
         backTo="/home"
         onRight={() => setSearchOpen((open) => !open)}

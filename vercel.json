@@ -8,6 +8,12 @@
       "has": [{ "type": "host", "value": "www.whislyapp.com" }],
       "destination": "https://whislyapp.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "whisly-ten.vercel.app" }],
+      "destination": "https://whislyapp.com/:path*",
+      "permanent": true
     }
   ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],

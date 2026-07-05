@@ -1760,6 +1760,30 @@ input {
   color: #77767e;
 }
 
+.create-list-input__control--multiline {
+  align-items: stretch;
+  min-height: 0;
+  padding: 6px 16px;
+}
+
+.create-list-input__control textarea {
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #1b1b1d;
+  font: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  resize: vertical;
+  min-height: 74px;
+}
+
+.create-list-input__control textarea::placeholder {
+  color: #77767e;
+}
+
 .create-list-privacy h2 {
   margin: 0 0 16px;
   color: #1b1b1d;

@@ -8,6 +8,7 @@ import {
   type ActivityEntry,
 } from '../features/activity/api';
 import { useRespondFriend } from '../features/friends/api';
+import { useRespondListInvite } from '../features/lists/api';
 import { MAIN_NAV_ITEMS } from '../shared/config/navigation';
 import { EmptyState, Skeleton, useToast } from '../shared/ui';
 
@@ -17,6 +18,7 @@ const ICON: Record<ActivityEntry['type'], string> = {
   item_added: 'add_shopping_cart',
   friend_request: 'person_add',
   friend_accepted: 'how_to_reg',
+  list_invite: 'playlist_add',
 };
 
 function timeAgo(iso: string): string {
@@ -47,7 +49,20 @@ function renderMessage(item: ActivityEntry) {
     case 'collaborator_added':
       return (
         <>
-          <strong>{actor}</strong> adicionou você à lista <strong>{list}</strong>.
+          <strong>{actor}</strong> entrou na sua lista <strong>{list}</strong>. 🎉
+        </>
+      );
+    case 'list_invite':
+      return (
+        <>
+          {item.actorId ? (
+            <Link className="activity-actor-link" to={`/u/${item.actorId}`}>
+              {actor}
+            </Link>
+          ) : (
+            <strong>{actor}</strong>
+          )}{' '}
+          convidou você para a lista <strong>{list}</strong>.
         </>
       );
     case 'item_added':
@@ -85,6 +100,7 @@ export function ActivityPage() {
   const { data: feed, isLoading } = useActivity();
   const markRead = useMarkActivityRead();
   const respond = useRespondFriend();
+  const respondInvite = useRespondListInvite();
   const toast = useToast();
   const entries = feed ?? [];
 
@@ -94,6 +110,22 @@ export function ActivityPage() {
       toast.show({
         variant: accept ? 'success' : 'info',
         title: accept ? 'Solicitação aceita' : 'Solicitação recusada',
+      });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível responder',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    }
+  }
+
+  async function handleRespondInvite(collaboratorId: string, accept: boolean) {
+    try {
+      await respondInvite.mutateAsync({ collaboratorId, accept });
+      toast.show({
+        variant: accept ? 'success' : 'info',
+        title: accept ? 'Você entrou na lista' : 'Convite recusado',
       });
     } catch (error) {
       toast.show({
@@ -180,12 +212,32 @@ export function ActivityPage() {
                         ) : null}
                       </div>
                     ) : null}
+                    {item.type === 'list_invite' && item.collaboratorId ? (
+                      <div className="activity-item__actions">
+                        <button
+                          className="person-add"
+                          disabled={respondInvite.isPending}
+                          onClick={() => handleRespondInvite(item.collaboratorId!, true)}
+                          type="button"
+                        >
+                          Aceitar
+                        </button>
+                        <button
+                          className="activity-item__decline"
+                          disabled={respondInvite.isPending}
+                          onClick={() => handleRespondInvite(item.collaboratorId!, false)}
+                          type="button"
+                        >
+                          Recusar
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                   {!item.read ? <span className="activity-item__dot" /> : null}
                 </>
               );
 
-              if (item.type === 'friend_request') {
+              if (item.type === 'friend_request' || item.type === 'list_invite') {
                 return (
                   <article className="activity-item" key={item.id}>
                     {iconAndBody}

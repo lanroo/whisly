@@ -439,10 +439,13 @@ export function useSharedLists() {
   });
 }
 
+export type CollaboratorStatus = 'pending' | 'accepted';
+
 export interface Collaborator {
   id: string;
   userId: string;
   role: CollaboratorRole;
+  status: CollaboratorStatus;
   name: string;
   handle: string | null;
   avatarUrl: string | null;
@@ -452,7 +455,7 @@ async function fetchCollaborators(listId: string): Promise<Collaborator[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('collaborators')
-    .select('id, user_id, role')
+    .select('id, user_id, role, status')
     .eq('list_id', listId)
     .order('created_at', { ascending: true });
 
@@ -476,6 +479,7 @@ async function fetchCollaborators(listId: string): Promise<Collaborator[]> {
     id: r.id,
     userId: r.user_id,
     role: r.role,
+    status: (r.status as CollaboratorStatus) ?? 'accepted',
     name: profiles.get(r.user_id)?.name ?? 'Usuário',
     handle: profiles.get(r.user_id)?.handle ?? null,
     avatarUrl: profiles.get(r.user_id)?.avatarUrl ?? null,
@@ -500,6 +504,7 @@ type MyCollabRow = {
   id: string;
   user_id: string;
   role: CollaboratorRole;
+  status: string;
   lists: { id: string; title: string; owner_id: string } | null;
 };
 
@@ -507,7 +512,7 @@ async function fetchMyListCollaborators(userId: string): Promise<ListCollaborato
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('collaborators')
-    .select('id, user_id, role, lists!inner(id, title, owner_id)')
+    .select('id, user_id, role, status, lists!inner(id, title, owner_id)')
     .eq('lists.owner_id', userId)
     .order('created_at', { ascending: false });
 
@@ -531,6 +536,7 @@ async function fetchMyListCollaborators(userId: string): Promise<ListCollaborato
     id: r.id,
     userId: r.user_id,
     role: r.role,
+    status: (r.status as CollaboratorStatus) ?? 'accepted',
     name: profiles.get(r.user_id)?.name ?? 'Usuário',
     handle: profiles.get(r.user_id)?.handle ?? null,
     avatarUrl: profiles.get(r.user_id)?.avatarUrl ?? null,
@@ -572,9 +578,9 @@ async function addCollaborator(
 
   const { error } = await supabase
     .from('collaborators')
-    .insert({ list_id: listId, user_id: profile.id, role });
+    .insert({ list_id: listId, user_id: profile.id, role, status: 'pending' });
   if (error) {
-    if (error.code === '23505') throw new Error('Essa pessoa já é colaboradora.');
+    if (error.code === '23505') throw new Error('Essa pessoa já foi convidada.');
     throw error;
   }
 }
@@ -593,11 +599,56 @@ async function inviteById(listId: string, userId: string, role: CollaboratorRole
   if (!supabase) throw new Error('Supabase não configurado.');
   const { error } = await supabase
     .from('collaborators')
-    .insert({ list_id: listId, user_id: userId, role });
+    .insert({ list_id: listId, user_id: userId, role, status: 'pending' });
   if (error) {
-    if (error.code === '23505') throw new Error('Essa pessoa já está nesta lista.');
+    if (error.code === '23505') throw new Error('Essa pessoa já foi convidada.');
     throw error;
   }
+}
+
+/**
+ * Status de convite de uma pessoa nas MINHAS listas (para o modal de convite):
+ * mapeia list_id -> 'pending' | 'accepted' (a RLS só devolve linhas de listas
+ * que eu vejo — ou seja, minhas).
+ */
+export function useListInviteStatuses(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['collaborators', 'status-of', userId],
+    queryFn: async (): Promise<Record<string, CollaboratorStatus>> => {
+      if (!supabase || !userId) return {};
+      const { data, error } = await supabase
+        .from('collaborators')
+        .select('list_id, status')
+        .eq('user_id', userId);
+      if (error) throw error;
+      const map: Record<string, CollaboratorStatus> = {};
+      for (const row of data ?? []) {
+        map[row.list_id] = (row.status as CollaboratorStatus) ?? 'accepted';
+      }
+      return map;
+    },
+    enabled: Boolean(userId),
+  });
+}
+
+/** Responde a um convite de lista: aceita (status accepted) ou recusa (remove). */
+export function useRespondListInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ collaboratorId, accept }: { collaboratorId: string; accept: boolean }) => {
+      if (!supabase) throw new Error('Supabase não configurado.');
+      const { error } = await supabase.rpc('respond_list_invite', {
+        _collaborator: collaboratorId,
+        _accept: accept,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['collaborators'] });
+      queryClient.invalidateQueries({ queryKey: ['activity'] });
+      queryClient.invalidateQueries({ queryKey: ['lists'] });
+    },
+  });
 }
 
 /** Convida uma pessoa (por id) para uma lista escolhida — ex.: pela tela de perfil. */

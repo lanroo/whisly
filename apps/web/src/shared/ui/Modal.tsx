@@ -102,6 +102,7 @@ export function Modal({ open, onClose, title, children, className = '' }: ModalP
         role="dialog"
         tabIndex={-1}
       >
+        <span className="modal__grabber" aria-hidden="true" />
         {title ? (
           <header className="modal__header">
             <h2 className="modal__title" id={titleId}>

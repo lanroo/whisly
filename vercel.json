@@ -4,15 +4,15 @@
   "outputDirectory": "apps/web/dist",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.whislyapp.com" }],
-      "destination": "https://whislyapp.com/:path*",
+      "destination": "https://whislyapp.com/$1",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "whisly-ten.vercel.app" }],
-      "destination": "https://whislyapp.com/:path*",
+      "destination": "https://whislyapp.com/$1",
       "permanent": true
     }
   ],

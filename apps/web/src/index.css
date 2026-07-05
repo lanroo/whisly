@@ -722,6 +722,12 @@ input {
   color: var(--text);
 }
 
+.wishly-home-topbar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .wishly-home-topbar__avatar {
   display: inline-flex;
   border-radius: 999px;
@@ -3759,6 +3765,21 @@ input {
   color: var(--text);
 }
 
+.wishly-lists__filter {
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+/* Stack de cards da home (design "Últimas listas"). */
+.wishly-lists__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.wishly-lists__stack .wishly-list-card__add {
+  margin-top: 0;
+}
+
 .wishly-lists__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3785,9 +3806,35 @@ input {
 }
 
 .wishly-list-card__media {
+  position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--surface-low);
+}
+
+/* Selo de privacidade sobre a capa (PRIVADA / PÚBLICO). */
+.wishly-list-card__badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(20, 22, 34, 0.62);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.wishly-list-card__badge .material-symbols-outlined {
+  font-size: 14px;
+  color: #fff;
 }
 
 .wishly-list-card__media img {

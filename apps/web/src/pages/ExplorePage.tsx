@@ -29,27 +29,17 @@ export function ExplorePage() {
   const sendRequest = useSendFriendRequest();
   const respond = useRespondFriend();
   const searchRef = useRef<HTMLInputElement>(null);
-  const [showPublic, setShowPublic] = useState(false);
 
   const isSearching = search.trim().length >= 2;
   const allLists = useMemo(() => lists ?? [], [lists]);
   const friends = useMemo(() => friendsFromGraph(graph, user?.id), [graph, user?.id]);
   const hasFriends = friends.length > 0;
 
-  // Sugestões: donos de listas públicas que ainda não têm relação comigo.
-  const suggestions = useMemo(() => {
-    const seen = new Set<string>();
-    const out: Person[] = [];
-    for (const list of allLists) {
-      const o = list.owner;
-      if (o.id === user?.id || seen.has(o.id)) continue;
-      seen.add(o.id);
-      if (statusFromGraph(graph, user?.id, o.id).status === 'none') {
-        out.push({ id: o.id, name: o.name, handle: o.handle, avatarUrl: o.avatarUrl });
-      }
-    }
-    return out;
-  }, [allLists, graph, user?.id]);
+  // Privacidade: só aparecem listas públicas de quem já é meu amigo.
+  const friendLists = useMemo(() => {
+    const friendIds = new Set(friends.map((f) => f.id));
+    return allLists.filter((list) => friendIds.has(list.owner.id));
+  }, [allLists, friends]);
 
   async function handleAdd(personId: string) {
     try {
@@ -165,15 +155,15 @@ export function ExplorePage() {
           <Skeleton height={180} width="100%" />
           <Skeleton height={180} width="100%" />
         </div>
-      ) : allLists.length === 0 ? (
+      ) : friendLists.length === 0 ? (
         <EmptyState
-          description="Quando alguém tornar uma lista pública, ela aparece aqui."
+          description="Quando um amigo tornar uma lista pública, ela aparece aqui."
           icon="explore"
           title="Nada público ainda"
         />
       ) : (
         <div className="explore-lists-grid">
-          {allLists.map((list) => (
+          {friendLists.map((list) => (
             <button
               className="explore-list-card"
               key={list.id}
@@ -274,19 +264,6 @@ export function ExplorePage() {
               </div>
             </section>
 
-            {suggestions.length > 0 ? (
-              <section className="explore-section">
-                <div className="section-heading explore-section__heading">
-                  <h2>Descobrir pessoas</h2>
-                </div>
-                <div className="person-list">
-                  {suggestions.map((person) => (
-                    <PersonItem key={person.id} person={person} />
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
             {publicListsSection}
           </>
         ) : (
@@ -346,17 +323,6 @@ export function ExplorePage() {
                 </ol>
               </div>
             </section>
-
-            {showPublic ? (
-              publicListsSection
-            ) : (
-              <p className="explore-public-toggle">
-                Só quer dar uma olhada?{' '}
-                <button className="link-button" onClick={() => setShowPublic(true)} type="button">
-                  Ver listas públicas
-                </button>
-              </p>
-            )}
           </>
         )}
       </main>

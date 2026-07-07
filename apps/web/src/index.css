@@ -359,13 +359,31 @@ input {
 }
 
 .desktop-header__inner,
+/* Header padrão: seta (margem esquerda) | título centralizado | ação. */
 .top-bar__inner {
   width: min(100%, var(--content-width));
   margin: 0 auto;
   padding: 14px 16px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 8px;
   align-items: center;
-  justify-content: space-between;
+}
+
+.top-bar__inner > h1 {
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.top-bar__inner > .brand {
+  justify-self: center;
+}
+
+.top-bar__inner > :last-child {
+  justify-self: end;
 }
 
 .desktop-header__inner h1,
@@ -1580,8 +1598,21 @@ input {
   margin: 0 auto;
   padding: 0 16px;
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 8px;
   align-items: center;
+}
+
+.create-flow-header__inner > h1 {
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.create-flow-header__inner > :last-child {
+  justify-self: end;
 }
 
 .create-flow-header__inner h1 {
@@ -2236,9 +2267,22 @@ input {
   height: 56px;
   margin: 0 auto;
   padding: 0 16px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 8px;
   align-items: center;
-  justify-content: space-between;
+}
+
+.collaborators-topbar__inner > h1 {
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.collaborators-topbar__inner > :last-child {
+  justify-self: end;
 }
 
 .explore-topbar__spacer {

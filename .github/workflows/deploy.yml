@@ -1,0 +1,63 @@
+name: Deploy (Vercel)
+
+# Publica pela Vercel CLI:
+#   - push na main  -> deploy de PRODUÇÃO (whislyapp.com)
+#   - pull request  -> deploy de PREVIEW (URL isolada)
+#
+# Pré-requisitos (uma vez só) — ver .github/workflows/README.md:
+#   1. Secrets no repo (Settings > Secrets and variables > Actions):
+#        VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#   2. Desligar o auto-deploy da integração Git da Vercel, senão o
+#      projeto builda duas vezes (uma pela Vercel, outra por aqui).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    name: Build e deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Definir ambiente (produção na main, preview no PR)
+        id: env
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "target=production" >> "$GITHUB_OUTPUT"
+            echo "flag=--prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=preview" >> "$GITHUB_OUTPUT"
+            echo "flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Puxar config da Vercel
+        run: vercel pull --yes --environment=${{ steps.env.outputs.target }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vercel build ${{ steps.env.outputs.flag }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.flag }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "Deploy publicado em: $URL"
+          echo "### Deploy Vercel :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "Ambiente: **${{ steps.env.outputs.target }}**" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: $URL" >> "$GITHUB_STEP_SUMMARY"

@@ -4935,14 +4935,31 @@ button.explore-product-card {
   white-space: pre-line;
 }
 
-/* ---- Cabeçalho da lista: membros + compartilhar + menu (3 pontinhos) ---- */
-.list-detail-header {
+/* ---- Cabeçalho da lista: capa embutida + membros/dono + descrição, num card só ---- */
+.list-detail-hero {
   margin-bottom: 18px;
-  padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 20px;
+  overflow: hidden;
   background: var(--surface-strong);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-1);
+}
+
+.list-detail-hero__cover {
+  position: relative;
+  height: 168px;
+  background: var(--surface-low);
+}
+
+.list-detail-hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 52%, rgba(20, 24, 45, 0.3) 100%);
+  pointer-events: none;
+}
+
+.list-detail-hero__body {
+  padding: 14px 16px;
 }
 
 .list-detail-header__row {

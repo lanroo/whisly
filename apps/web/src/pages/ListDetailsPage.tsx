@@ -412,9 +412,10 @@ export function ListDetailsPage() {
       />
 
       <main className="page list-detail-page">
-        <div className="list-cover">
+        <section className="list-detail-hero">
+          <div className="list-detail-hero__cover">
           {list?.image ? <img alt="" className="list-cover__img" src={list.image} /> : null}
-          <div className="list-cover__overlay" />
+          <div className="list-detail-hero__scrim" />
           {isOwner ? (
             <label className={`list-cover__change ${uploadingCover ? 'is-loading' : ''}`.trim()}>
               <input
@@ -428,9 +429,9 @@ export function ListDetailsPage() {
               {uploadingCover ? 'Enviando...' : 'Trocar capa'}
             </label>
           ) : null}
-        </div>
+          </div>
 
-        <section className="list-detail-header">
+          <div className="list-detail-hero__body">
           {isOwner ? (
           <div className="list-detail-header__row">
             <div aria-label="Membros da lista" className="list-detail-header__members">
@@ -521,6 +522,7 @@ export function ListDetailsPage() {
           {list?.description ? (
             <p className="list-detail-header__desc">{list.description}</p>
           ) : null}
+          </div>
         </section>
 
         {searchOpen ? (

@@ -88,9 +88,18 @@ export function ListDetailsPage() {
   const [statusItem, setStatusItem] = useState<ListItem | null>(null);
   const [editingStatus, setEditingStatus] = useState<ItemStatus>('desired');
 
-  // Busca dentro da lista
+  // Busca e filtro de status dentro da lista
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ItemStatus | 'all'>('all');
+
+  // Visualização (grade ou lista) — preferência do usuário, lembrada no dispositivo.
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() =>
+    localStorage.getItem('wishly-list-view') === 'list' ? 'list' : 'grid',
+  );
+  useEffect(() => {
+    localStorage.setItem('wishly-list-view', viewMode);
+  }, [viewMode]);
 
   // Compartilhar
   const [shareOpen, setShareOpen] = useState(false);
@@ -394,16 +403,30 @@ export function ListDetailsPage() {
   const collabList = collaborators ?? [];
 
   const filteredItems = useMemo(() => {
+    let out = list_items;
+    if (statusFilter !== 'all') out = out.filter((item) => item.status === statusFilter);
     const term = search.trim().toLowerCase();
-    if (!term) return list_items;
-    return list_items.filter(
-      (item) =>
-        item.title.toLowerCase().includes(term) || (item.store ?? '').toLowerCase().includes(term),
-    );
-  }, [list_items, search]);
+    if (term) {
+      out = out.filter(
+        (item) =>
+          item.title.toLowerCase().includes(term) ||
+          (item.store ?? '').toLowerCase().includes(term),
+      );
+    }
+    return out;
+  }, [list_items, search, statusFilter]);
+
+  const privacyLabel = PRIVACY_CHOICES.find((choice) => choice.value === list?.privacy)?.title ?? '';
+  const itemCount = list_items.length;
 
   return (
-    <AppShell className="wishly-list-shell" showFab={false}>
+    <AppShell
+      className="wishly-list-shell"
+      fabIcon="add"
+      fabLabel="Adicionar item"
+      fabOnClick={() => setAddOpen(true)}
+      showFab={canEdit}
+    >
       <TopBar
         backTo="/lists"
         onRight={() => setSearchOpen((open) => !open)}
@@ -430,46 +453,53 @@ export function ListDetailsPage() {
           ) : null}
         </div>
 
-        <section className="list-detail-header">
-          {isOwner ? (
-          <div className="list-detail-header__row">
-            <div aria-label="Membros da lista" className="list-detail-header__members">
-              {isOwner && !collabList.some((c) => c.userId === user?.id) ? (
-                <span className="list-detail-header__avatar" title="Você · Dono">
+        <section className="list-info-card">
+          <div className="list-info-card__top">
+            <Link
+              className="list-info-card__owner"
+              to={isOwner ? '/profile' : `/u/${list?.ownerId ?? ''}`}
+            >
+              <span className="list-info-card__avatar">
+                {isOwner ? (
                   <MyAvatar size="sm" />
+                ) : (
+                  <Avatar name={list?.ownerName} size="sm" src={list?.ownerAvatar ?? undefined} />
+                )}
+              </span>
+              <div className="list-info-card__text">
+                <strong>{isOwner ? 'Você · Dono' : (list?.ownerName ?? 'Lista')}</strong>
+                <span>
+                  {privacyLabel ? `${privacyLabel} · ` : ''}
+                  {itemCount} {itemCount === 1 ? 'item' : 'itens'}
                 </span>
-              ) : null}
-              {collabList.slice(0, 5).map((c) => (
-                <span
-                  className="list-detail-header__avatar"
-                  key={c.userId}
-                  title={c.role === 'owner' ? `${c.name} · Dono` : c.name}
-                >
-                  <Avatar name={c.name} size="sm" src={c.avatarUrl ?? undefined} />
-                </span>
-              ))}
-              {collabList.length > 5 ? (
-                <span className="list-detail-header__avatar list-detail-header__more">
-                  +{collabList.length - 5}
-                </span>
-              ) : null}
-            </div>
+              </div>
+            </Link>
 
-            {isOwner ? (
-              <div className="list-detail-header__tools">
+            <div className="list-info-card__actions">
+              <button
+                aria-label={viewMode === 'grid' ? 'Ver em lista' : 'Ver em grade'}
+                className="list-info-card__toggle"
+                onClick={() => setViewMode((mode) => (mode === 'grid' ? 'list' : 'grid'))}
+                type="button"
+              >
+                <MaterialIcon name={viewMode === 'grid' ? 'view_list' : 'grid_view'} />
+              </button>
+              {isOwner ? (
                 <button
-                  className="list-detail-header__share"
+                  aria-label="Compartilhar"
+                  className="list-info-card__share"
                   onClick={() => setShareOpen(true)}
                   type="button"
                 >
                   <MaterialIcon name="person_add" />
-                  Compartilhar
                 </button>
+              ) : null}
+              {isOwner ? (
                 <div className="list-detail-menu" ref={menuRef}>
                   <button
                     aria-haspopup="menu"
                     aria-label="Opções da lista"
-                    className="list-detail-menu__trigger"
+                    className="list-info-card__more"
                     onClick={() => setMenuOpen((open) => !open)}
                     type="button"
                   >
@@ -504,24 +534,39 @@ export function ListDetailsPage() {
                     </div>
                   ) : null}
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
-          ) : (
-            <Link className="list-detail-owner" to={`/u/${list?.ownerId ?? ''}`}>
-              <Avatar name={list?.ownerName} size="md" src={list?.ownerAvatar ?? undefined} />
-              <div className="list-detail-owner__info">
-                <strong>Lista de {list?.ownerName ?? 'alguém'}</strong>
-                {list?.ownerHandle ? <span>@{list.ownerHandle}</span> : null}
-              </div>
-              <MaterialIcon className="list-detail-owner__chevron" name="chevron_right" />
-            </Link>
-          )}
 
           {list?.description ? (
-            <p className="list-detail-header__desc">{list.description}</p>
+            <>
+              <div className="list-info-card__divider" />
+              <p className="list-info-card__desc">{list.description}</p>
+            </>
           ) : null}
         </section>
+
+        {itemCount > 0 && (list?.showPriority ?? true) ? (
+          <div aria-label="Filtrar por status" className="list-detail-chips">
+            <button
+              className={`list-detail-chip ${statusFilter === 'all' ? 'is-active' : ''}`.trim()}
+              onClick={() => setStatusFilter('all')}
+              type="button"
+            >
+              Tudo
+            </button>
+            {STATUS_OPTIONS.map((opt) => (
+              <button
+                className={`list-detail-chip ${statusFilter === opt.value ? 'is-active' : ''}`.trim()}
+                key={opt.value}
+                onClick={() => setStatusFilter(opt.value)}
+                type="button"
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         {searchOpen ? (
           <label className="search-box list-item-search">
@@ -536,21 +581,12 @@ export function ListDetailsPage() {
           </label>
         ) : null}
 
-        {canEdit ? (
-          <button
-            className="primary-button primary-button--full additem-trigger"
-            onClick={() => setAddOpen(true)}
-            type="button"
-          >
-            <MaterialIcon name="add" />
-            Adicionar item
-          </button>
-        ) : (
+        {!canEdit ? (
           <p className="list-detail-readonly">
             <MaterialIcon name="visibility" />
             Você está vendo esta lista. Apenas o dono e editores podem adicionar itens.
           </p>
-        )}
+        ) : null}
 
         {isLoading ? (
           <div className="item-list">
@@ -570,24 +606,28 @@ export function ListDetailsPage() {
         ) : filteredItems.length === 0 ? (
           <p className="explore-empty-hint">Nenhum produto encontrado para "{search}".</p>
         ) : (
-          <ul className="item-list">
-            {filteredItems.map((item) => (
-              <ItemRow
-                canReserve={!isOwner && item.addedBy !== user?.id}
-                currentUserId={user?.id}
-                item={item}
-                key={item.id}
-                mine={canEdit && (isOwner || item.addedBy === user?.id)}
-                onDelete={() => handleDelete(item.id)}
-                onEdit={() => openItemEdit(item)}
-                onEditStatus={() => openStatusEdit(item)}
-                onReserve={() => handleReserve(item)}
-                removing={deleteItem.isPending}
-                reserving={reserveItem.isPending || unreserveItem.isPending}
-                showPrices={list?.showPrices ?? true}
-                showPriority={list?.showPriority ?? true}
-              />
-            ))}
+          <ul className={viewMode === 'grid' ? 'item-grid' : 'item-list'}>
+            {filteredItems.map((item) => {
+              const itemProps = {
+                canReserve: !isOwner && item.addedBy !== user?.id,
+                currentUserId: user?.id,
+                item,
+                mine: canEdit && (isOwner || item.addedBy === user?.id),
+                onDelete: () => handleDelete(item.id),
+                onEdit: () => openItemEdit(item),
+                onEditStatus: () => openStatusEdit(item),
+                onReserve: () => handleReserve(item),
+                removing: deleteItem.isPending,
+                reserving: reserveItem.isPending || unreserveItem.isPending,
+                showPrices: list?.showPrices ?? true,
+                showPriority: list?.showPriority ?? true,
+              };
+              return viewMode === 'grid' ? (
+                <ItemGridCard key={item.id} {...itemProps} />
+              ) : (
+                <ItemListRow key={item.id} {...itemProps} />
+              );
+            })}
           </ul>
         )}
       </main>
@@ -894,7 +934,7 @@ export function ListDetailsPage() {
   );
 }
 
-function ItemRow({
+function ItemGridCard({
   item,
   mine,
   onDelete,
@@ -936,6 +976,159 @@ function ItemRow({
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [menuOpen]);
+
+  const media = item.imageUrl ? (
+    <img alt="" className="item-grid-card__thumb" src={item.imageUrl} />
+  ) : (
+    <div className="item-grid-card__thumb item-grid-card__thumb--empty">
+      <MaterialIcon name="image" />
+    </div>
+  );
+
+  return (
+    <li className="item-grid-card">
+      <div className="item-grid-card__media">
+        {item.url ? (
+          <a
+            aria-label={item.title}
+            className="item-grid-card__media-link"
+            href={item.url}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {media}
+          </a>
+        ) : (
+          media
+        )}
+
+        {showPriority ? (
+          mine ? (
+            <button
+              className={`item-card__badge item-card__badge--${item.status} item-grid-card__badge`}
+              onClick={onEditStatus}
+              type="button"
+            >
+              {statusLabel(item.status)}
+            </button>
+          ) : (
+            <span
+              className={`item-card__badge item-card__badge--${item.status} item-grid-card__badge`}
+            >
+              {statusLabel(item.status)}
+            </span>
+          )
+        ) : null}
+
+        {mine ? (
+          <div className="item-grid-card__menu" ref={menuRef}>
+            <button
+              aria-haspopup="menu"
+              aria-label="Opções do item"
+              className="item-grid-card__menu-trigger"
+              onClick={() => setMenuOpen((open) => !open)}
+              type="button"
+            >
+              <MaterialIcon name="more_vert" />
+            </button>
+            {menuOpen ? (
+              <div className="list-detail-menu__dropdown item-grid-card__menu-dropdown" role="menu">
+                <button
+                  className="list-detail-menu__item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onEdit();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  <MaterialIcon name="edit" />
+                  Editar item
+                </button>
+                <button
+                  className="list-detail-menu__item list-detail-menu__item--danger"
+                  disabled={removing}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  <MaterialIcon name="delete" />
+                  Excluir item
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="item-grid-card__body">
+        {item.store ? <span className="item-grid-card__store">{item.store}</span> : null}
+        <h3 className="item-grid-card__title">{item.title}</h3>
+        {item.price && showPrices ? (
+          <span className="item-grid-card__price">{item.price}</span>
+        ) : null}
+        {canReserve ? (
+          <button
+            className={`item-grid-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+            disabled={reserving || reservedByOther}
+            onClick={onReserve}
+            type="button"
+          >
+            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+            {reservedByOther ? 'Reservado' : reservedByMe ? 'Reservado por você' : 'Reservar'}
+          </button>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+/** Item em formato de lista (linha horizontal) — alternativa à grade. */
+function ItemListRow({
+  item,
+  mine,
+  onDelete,
+  onEdit,
+  removing,
+  canReserve,
+  currentUserId,
+  onReserve,
+  reserving,
+  showPrices,
+  showPriority,
+}: {
+  item: ListItem;
+  mine: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  removing: boolean;
+  canReserve: boolean;
+  currentUserId: string | undefined;
+  onReserve: () => void;
+  reserving: boolean;
+  onEditStatus: () => void;
+  showPrices: boolean;
+  showPriority: boolean;
+}) {
+  const reservedByMe = item.reservation?.reservedBy === currentUserId;
+  const reservedByOther = Boolean(item.reservation) && !reservedByMe;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
+
   const inner = (
     <>
       <div className="item-card__media">
@@ -948,54 +1141,37 @@ function ItemRow({
         )}
       </div>
       <div className="item-card__body">
-        {item.store ? <span className="item-card__store">{item.store}</span> : null}
-        <h3 className="item-card__title">{item.title}</h3>
+        <div className="item-card__badges">
+          {item.store ? <span className="item-card__store">{item.store}</span> : null}
+          {showPriority ? (
+            <span className={`item-card__status item-card__badge--${item.status}`}>
+              {statusLabel(item.status)}
+            </span>
+          ) : null}
+        </div>
+        <h3 className={`item-card__title${item.status === 'bought' ? ' is-bought' : ''}`}>
+          {item.title}
+        </h3>
         {item.price && showPrices ? (
-          <span className="item-card__price">{item.price}</span>
+          <span className={`item-card__price${item.status === 'bought' ? ' is-bought' : ''}`}>
+            {item.price}
+          </span>
         ) : null}
       </div>
-      {item.url ? <MaterialIcon className="item-card__open" name="open_in_new" /> : null}
     </>
   );
 
   return (
     <li className="item-card">
-      {item.url ? (
-        <a className="item-card__link" href={item.url} rel="noreferrer" target="_blank">
-          {inner}
-        </a>
-      ) : (
-        <div className="item-card__link">{inner}</div>
-      )}
-
-      {showPriority ? (
-        mine ? (
-          <button
-            className={`item-card__badge item-card__badge--${item.status}`}
-            onClick={onEditStatus}
-            type="button"
-          >
-            {statusLabel(item.status)}
-          </button>
+      <div className="item-card__row">
+        {item.url ? (
+          <a className="item-card__link" href={item.url} rel="noreferrer" target="_blank">
+            {inner}
+          </a>
         ) : (
-          <span className={`item-card__badge item-card__badge--${item.status}`}>
-            {statusLabel(item.status)}
-          </span>
-        )
-      ) : null}
+          <div className="item-card__link">{inner}</div>
+        )}
 
-      <div className="item-card__actions">
-        {canReserve ? (
-          <button
-            className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
-            disabled={reserving || reservedByOther}
-            onClick={onReserve}
-            type="button"
-          >
-            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
-            {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
-          </button>
-        ) : null}
         {mine ? (
           <div className="item-card__menu" ref={menuRef}>
             <button
@@ -1039,6 +1215,18 @@ function ItemRow({
           </div>
         ) : null}
       </div>
+
+      {canReserve ? (
+        <button
+          className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+          disabled={reserving || reservedByOther}
+          onClick={onReserve}
+          type="button"
+        >
+          <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+          {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
+        </button>
+      ) : null}
     </li>
   );
 }

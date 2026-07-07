@@ -46,8 +46,12 @@ export function WelcomePage() {
 
       <section className="auth-screen__card">
         <div className="auth-screen__illo auth-screen__illo--pair">
-          <PhoneIllustration />
-          <img alt="" className="auth-screen__illo-img" src={welcomeCharacter} />
+          <div className="auth-screen__illo-item auth-screen__illo-item--phone">
+            <PhoneIllustration />
+          </div>
+          <div className="auth-screen__illo-item auth-screen__illo-item--char">
+            <img alt="" className="auth-screen__illo-img" src={welcomeCharacter} />
+          </div>
         </div>
 
         <h1 className="auth-screen__title auth-screen__title--lg">Olá!</h1>

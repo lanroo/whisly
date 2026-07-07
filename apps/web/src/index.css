@@ -3572,6 +3572,41 @@ input {
   width: auto;
 }
 
+/* Sombra de contato sob cada ilustração (padrão flat: elipse suave). */
+.auth-screen__illo-item {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.auth-screen__illo-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-screen__illo-item::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  z-index: 0;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(28, 33, 56, 0.32) 0%, rgba(28, 33, 56, 0.16) 45%, rgba(28, 33, 56, 0) 74%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* A base do celular é mais larga que os pés da personagem. */
+.auth-screen__illo-item--phone::after {
+  width: 88%;
+}
+
+.auth-screen__illo-item--char::after {
+  width: 72%;
+}
+
 .auth-screen__title {
   margin: 10px 0 4px;
   color: var(--text);

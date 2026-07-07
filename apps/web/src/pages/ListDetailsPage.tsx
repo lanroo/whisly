@@ -93,6 +93,14 @@ export function ListDetailsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ItemStatus | 'all'>('all');
 
+  // Visualização (grade ou lista) — preferência do usuário, lembrada no dispositivo.
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() =>
+    localStorage.getItem('wishly-list-view') === 'list' ? 'list' : 'grid',
+  );
+  useEffect(() => {
+    localStorage.setItem('wishly-list-view', viewMode);
+  }, [viewMode]);
+
   // Compartilhar
   const [shareOpen, setShareOpen] = useState(false);
   const [shareHandle, setShareHandle] = useState('');
@@ -412,7 +420,13 @@ export function ListDetailsPage() {
   const itemCount = list_items.length;
 
   return (
-    <AppShell className="wishly-list-shell" showFab={false}>
+    <AppShell
+      className="wishly-list-shell"
+      fabIcon="add"
+      fabLabel="Adicionar item"
+      fabOnClick={() => setAddOpen(true)}
+      showFab={canEdit}
+    >
       <TopBar
         backTo="/lists"
         onRight={() => setSearchOpen((open) => !open)}
@@ -458,8 +472,16 @@ export function ListDetailsPage() {
             </div>
           </Link>
 
-          {isOwner ? (
-            <div className="list-detail-meta__actions">
+          <div className="list-detail-meta__actions">
+            <button
+              aria-label={viewMode === 'grid' ? 'Ver em lista' : 'Ver em grade'}
+              className="list-detail-meta__icon"
+              onClick={() => setViewMode((mode) => (mode === 'grid' ? 'list' : 'grid'))}
+              type="button"
+            >
+              <MaterialIcon name={viewMode === 'grid' ? 'view_list' : 'grid_view'} />
+            </button>
+            {isOwner ? (
               <button
                 aria-label="Compartilhar"
                 className="list-detail-meta__icon"
@@ -468,6 +490,8 @@ export function ListDetailsPage() {
               >
                 <MaterialIcon name="ios_share" />
               </button>
+            ) : null}
+            {isOwner ? (
               <div className="list-detail-menu" ref={menuRef}>
                 <button
                   aria-haspopup="menu"
@@ -507,8 +531,8 @@ export function ListDetailsPage() {
                   </div>
                 ) : null}
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         {list?.description ? <p className="list-detail-desc-line">{list.description}</p> : null}
@@ -548,21 +572,12 @@ export function ListDetailsPage() {
           </label>
         ) : null}
 
-        {canEdit ? (
-          <button
-            className="primary-button primary-button--full additem-trigger"
-            onClick={() => setAddOpen(true)}
-            type="button"
-          >
-            <MaterialIcon name="add" />
-            Adicionar item
-          </button>
-        ) : (
+        {!canEdit ? (
           <p className="list-detail-readonly">
             <MaterialIcon name="visibility" />
             Você está vendo esta lista. Apenas o dono e editores podem adicionar itens.
           </p>
-        )}
+        ) : null}
 
         {isLoading ? (
           <div className="item-list">
@@ -582,24 +597,28 @@ export function ListDetailsPage() {
         ) : filteredItems.length === 0 ? (
           <p className="explore-empty-hint">Nenhum produto encontrado para "{search}".</p>
         ) : (
-          <ul className="item-grid">
-            {filteredItems.map((item) => (
-              <ItemGridCard
-                canReserve={!isOwner && item.addedBy !== user?.id}
-                currentUserId={user?.id}
-                item={item}
-                key={item.id}
-                mine={canEdit && (isOwner || item.addedBy === user?.id)}
-                onDelete={() => handleDelete(item.id)}
-                onEdit={() => openItemEdit(item)}
-                onEditStatus={() => openStatusEdit(item)}
-                onReserve={() => handleReserve(item)}
-                removing={deleteItem.isPending}
-                reserving={reserveItem.isPending || unreserveItem.isPending}
-                showPrices={list?.showPrices ?? true}
-                showPriority={list?.showPriority ?? true}
-              />
-            ))}
+          <ul className={viewMode === 'grid' ? 'item-grid' : 'item-list'}>
+            {filteredItems.map((item) => {
+              const itemProps = {
+                canReserve: !isOwner && item.addedBy !== user?.id,
+                currentUserId: user?.id,
+                item,
+                mine: canEdit && (isOwner || item.addedBy === user?.id),
+                onDelete: () => handleDelete(item.id),
+                onEdit: () => openItemEdit(item),
+                onEditStatus: () => openStatusEdit(item),
+                onReserve: () => handleReserve(item),
+                removing: deleteItem.isPending,
+                reserving: reserveItem.isPending || unreserveItem.isPending,
+                showPrices: list?.showPrices ?? true,
+                showPriority: list?.showPriority ?? true,
+              };
+              return viewMode === 'grid' ? (
+                <ItemGridCard key={item.id} {...itemProps} />
+              ) : (
+                <ItemListRow key={item.id} {...itemProps} />
+              );
+            })}
           </ul>
         )}
       </main>
@@ -1052,6 +1071,155 @@ function ItemGridCard({
             <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
             {reservedByOther ? 'Reservado' : reservedByMe ? 'Reservado por você' : 'Reservar'}
           </button>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+/** Item em formato de lista (linha horizontal) — alternativa à grade. */
+function ItemListRow({
+  item,
+  mine,
+  onDelete,
+  onEdit,
+  removing,
+  canReserve,
+  currentUserId,
+  onReserve,
+  reserving,
+  onEditStatus,
+  showPrices,
+  showPriority,
+}: {
+  item: ListItem;
+  mine: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  removing: boolean;
+  canReserve: boolean;
+  currentUserId: string | undefined;
+  onReserve: () => void;
+  reserving: boolean;
+  onEditStatus: () => void;
+  showPrices: boolean;
+  showPriority: boolean;
+}) {
+  const reservedByMe = item.reservation?.reservedBy === currentUserId;
+  const reservedByOther = Boolean(item.reservation) && !reservedByMe;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
+
+  const inner = (
+    <>
+      <div className="item-card__media">
+        {item.imageUrl ? (
+          <img alt="" className="item-card__thumb" src={item.imageUrl} />
+        ) : (
+          <div className="item-card__thumb item-card__thumb--empty">
+            <MaterialIcon name="image" />
+          </div>
+        )}
+      </div>
+      <div className="item-card__body">
+        {item.store ? <span className="item-card__store">{item.store}</span> : null}
+        <h3 className="item-card__title">{item.title}</h3>
+        {item.price && showPrices ? <span className="item-card__price">{item.price}</span> : null}
+      </div>
+      {item.url ? <MaterialIcon className="item-card__open" name="open_in_new" /> : null}
+    </>
+  );
+
+  return (
+    <li className="item-card">
+      {item.url ? (
+        <a className="item-card__link" href={item.url} rel="noreferrer" target="_blank">
+          {inner}
+        </a>
+      ) : (
+        <div className="item-card__link">{inner}</div>
+      )}
+
+      {showPriority ? (
+        mine ? (
+          <button
+            className={`item-card__badge item-card__badge--${item.status}`}
+            onClick={onEditStatus}
+            type="button"
+          >
+            {statusLabel(item.status)}
+          </button>
+        ) : (
+          <span className={`item-card__badge item-card__badge--${item.status}`}>
+            {statusLabel(item.status)}
+          </span>
+        )
+      ) : null}
+
+      <div className="item-card__actions">
+        {canReserve ? (
+          <button
+            className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+            disabled={reserving || reservedByOther}
+            onClick={onReserve}
+            type="button"
+          >
+            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+            {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
+          </button>
+        ) : null}
+        {mine ? (
+          <div className="item-card__menu" ref={menuRef}>
+            <button
+              aria-haspopup="menu"
+              aria-label="Opções do item"
+              className="item-card__menu-trigger"
+              onClick={() => setMenuOpen((open) => !open)}
+              type="button"
+            >
+              <MaterialIcon name="more_vert" />
+            </button>
+            {menuOpen ? (
+              <div className="list-detail-menu__dropdown item-card__menu-dropdown" role="menu">
+                <button
+                  className="list-detail-menu__item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onEdit();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  <MaterialIcon name="edit" />
+                  Editar item
+                </button>
+                <button
+                  className="list-detail-menu__item list-detail-menu__item--danger"
+                  disabled={removing}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  <MaterialIcon name="delete" />
+                  Excluir item
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </li>

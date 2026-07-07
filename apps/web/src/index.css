@@ -3533,26 +3533,45 @@ input {
   font-size: 15px;
 }
 
-.auth-screen__brand {
+/* ============================================================
+   LOGOMARCA CANÔNICA — selo "W" + wordmark "WISHLY".
+   Fonte única de verdade: componente <Brand />. Serif (Playfair),
+   maiúsculas, mesmo tamanho e espaçamento em todo o app.
+   ============================================================ */
+.brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: var(--accent);
+  gap: 10px;
+  line-height: 1;
+  color: var(--text);
 }
 
-.auth-screen__brand-logo {
-  display: inline-flex;
-}
-
-.auth-screen__brand-logo svg {
-  display: block;
-}
-
-.auth-screen__brand-name {
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.005em;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.brand__name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* Wrapper do brand nas telas de auth (posição/centralização). */
+.auth-screen__brand {
+  display: inline-flex;
 }
 
 .auth-screen__card {

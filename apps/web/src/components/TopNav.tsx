@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { NavItem } from '../types/ui';
 import { useAuth } from '../shared/auth';
+import { Brand } from './Brand';
 import { MaterialIcon } from './MaterialIcon';
 import { MyAvatar } from './MyAvatar';
 
@@ -55,8 +56,7 @@ export function TopNav({ items = [], activeKey }: TopNavProps) {
     <header className="app-top-nav">
       <div className="app-top-nav__inner">
         <Link className="app-top-nav__brand" to="/home">
-          <span className="app-top-nav__logo">W</span>
-          <span>WISHLY</span>
+          <Brand />
         </Link>
 
         <nav className="app-top-nav__links" aria-label="Navegação principal">

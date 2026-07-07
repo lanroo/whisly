@@ -453,89 +453,98 @@ export function ListDetailsPage() {
           ) : null}
         </div>
 
-        <div className="list-detail-meta">
-          <Link
-            className="list-detail-meta__owner"
-            to={isOwner ? '/profile' : `/u/${list?.ownerId ?? ''}`}
-          >
-            {isOwner ? (
-              <MyAvatar size="md" />
-            ) : (
-              <Avatar name={list?.ownerName} size="md" src={list?.ownerAvatar ?? undefined} />
-            )}
-            <div className="list-detail-meta__info">
-              <strong>{list?.ownerName ?? 'Lista'}</strong>
-              <span>
-                {privacyLabel ? `${privacyLabel} • ` : ''}
-                {itemCount} {itemCount === 1 ? 'item' : 'itens'}
-              </span>
-            </div>
-          </Link>
-
-          <div className="list-detail-meta__actions">
-            <button
-              aria-label={viewMode === 'grid' ? 'Ver em lista' : 'Ver em grade'}
-              className="list-detail-meta__icon"
-              onClick={() => setViewMode((mode) => (mode === 'grid' ? 'list' : 'grid'))}
-              type="button"
+        <section className="list-info-card">
+          <div className="list-info-card__top">
+            <Link
+              className="list-info-card__owner"
+              to={isOwner ? '/profile' : `/u/${list?.ownerId ?? ''}`}
             >
-              <MaterialIcon name={viewMode === 'grid' ? 'view_list' : 'grid_view'} />
-            </button>
-            {isOwner ? (
+              <span className="list-info-card__avatar">
+                {isOwner ? (
+                  <MyAvatar size="sm" />
+                ) : (
+                  <Avatar name={list?.ownerName} size="sm" src={list?.ownerAvatar ?? undefined} />
+                )}
+              </span>
+              <div className="list-info-card__text">
+                <strong>{isOwner ? 'Você · Dono' : (list?.ownerName ?? 'Lista')}</strong>
+                <span>
+                  {privacyLabel ? `${privacyLabel} · ` : ''}
+                  {itemCount} {itemCount === 1 ? 'item' : 'itens'}
+                </span>
+              </div>
+            </Link>
+
+            <div className="list-info-card__actions">
               <button
-                aria-label="Compartilhar"
-                className="list-detail-meta__icon"
-                onClick={() => setShareOpen(true)}
+                aria-label={viewMode === 'grid' ? 'Ver em lista' : 'Ver em grade'}
+                className="list-info-card__toggle"
+                onClick={() => setViewMode((mode) => (mode === 'grid' ? 'list' : 'grid'))}
                 type="button"
               >
-                <MaterialIcon name="ios_share" />
+                <MaterialIcon name={viewMode === 'grid' ? 'view_list' : 'grid_view'} />
               </button>
-            ) : null}
-            {isOwner ? (
-              <div className="list-detail-menu" ref={menuRef}>
+              {isOwner ? (
                 <button
-                  aria-haspopup="menu"
-                  aria-label="Configurações da lista"
-                  className="list-detail-meta__icon"
-                  onClick={() => setMenuOpen((open) => !open)}
+                  aria-label="Compartilhar"
+                  className="list-info-card__share"
+                  onClick={() => setShareOpen(true)}
                   type="button"
                 >
-                  <MaterialIcon name="settings" />
+                  <MaterialIcon name="person_add" />
                 </button>
-                {menuOpen ? (
-                  <div className="list-detail-menu__dropdown" role="menu">
-                    <button
-                      className="list-detail-menu__item"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        openEdit();
-                      }}
-                      role="menuitem"
-                      type="button"
-                    >
-                      <MaterialIcon name="edit" />
-                      Editar lista
-                    </button>
-                    <button
-                      className="list-detail-menu__item list-detail-menu__item--danger"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setConfirmDelete(true);
-                      }}
-                      role="menuitem"
-                      type="button"
-                    >
-                      <MaterialIcon name="delete" />
-                      Excluir lista
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
+              ) : null}
+              {isOwner ? (
+                <div className="list-detail-menu" ref={menuRef}>
+                  <button
+                    aria-haspopup="menu"
+                    aria-label="Opções da lista"
+                    className="list-info-card__more"
+                    onClick={() => setMenuOpen((open) => !open)}
+                    type="button"
+                  >
+                    <MaterialIcon name="more_vert" />
+                  </button>
+                  {menuOpen ? (
+                    <div className="list-detail-menu__dropdown" role="menu">
+                      <button
+                        className="list-detail-menu__item"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          openEdit();
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <MaterialIcon name="edit" />
+                        Editar lista
+                      </button>
+                      <button
+                        className="list-detail-menu__item list-detail-menu__item--danger"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setConfirmDelete(true);
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <MaterialIcon name="delete" />
+                        Excluir lista
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
 
-        {list?.description ? <p className="list-detail-desc-line">{list.description}</p> : null}
+          {list?.description ? (
+            <>
+              <div className="list-info-card__divider" />
+              <p className="list-info-card__desc">{list.description}</p>
+            </>
+          ) : null}
+        </section>
 
         {itemCount > 0 && (list?.showPriority ?? true) ? (
           <div aria-label="Filtrar por status" className="list-detail-chips">
@@ -1088,7 +1097,6 @@ function ItemListRow({
   currentUserId,
   onReserve,
   reserving,
-  onEditStatus,
   showPrices,
   showPriority,
 }: {
@@ -1133,9 +1141,22 @@ function ItemListRow({
         )}
       </div>
       <div className="item-card__body">
-        {item.store ? <span className="item-card__store">{item.store}</span> : null}
-        <h3 className="item-card__title">{item.title}</h3>
-        {item.price && showPrices ? <span className="item-card__price">{item.price}</span> : null}
+        <div className="item-card__badges">
+          {item.store ? <span className="item-card__store">{item.store}</span> : null}
+          {showPriority ? (
+            <span className={`item-card__status item-card__badge--${item.status}`}>
+              {statusLabel(item.status)}
+            </span>
+          ) : null}
+        </div>
+        <h3 className={`item-card__title${item.status === 'bought' ? ' is-bought' : ''}`}>
+          {item.title}
+        </h3>
+        {item.price && showPrices ? (
+          <span className={`item-card__price${item.status === 'bought' ? ' is-bought' : ''}`}>
+            {item.price}
+          </span>
+        ) : null}
       </div>
       {item.url ? <MaterialIcon className="item-card__open" name="open_in_new" /> : null}
     </>
@@ -1150,22 +1171,6 @@ function ItemListRow({
       ) : (
         <div className="item-card__link">{inner}</div>
       )}
-
-      {showPriority ? (
-        mine ? (
-          <button
-            className={`item-card__badge item-card__badge--${item.status}`}
-            onClick={onEditStatus}
-            type="button"
-          >
-            {statusLabel(item.status)}
-          </button>
-        ) : (
-          <span className={`item-card__badge item-card__badge--${item.status}`}>
-            {statusLabel(item.status)}
-          </span>
-        )
-      ) : null}
 
       <div className="item-card__actions">
         {canReserve ? (

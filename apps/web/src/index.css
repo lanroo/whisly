@@ -4508,15 +4508,43 @@ button.item-card__badge {
 }
 
 .item-card__store {
-  align-self: flex-start;
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--surface-blue-strong);
   color: var(--accent-soft-text);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Linha de badges (loja + status) dentro do item — variação Editorial. */
+.item-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.item-card__status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.item-card__title.is-bought {
+  color: #9a9aa0;
+}
+
+.item-card__price.is-bought {
+  color: #9a9aa0;
+  text-decoration: line-through;
 }
 
 .item-card__title {
@@ -4938,11 +4966,127 @@ button.explore-product-card {
 /* ---- Capa full-bleed (largura total da tela), logo abaixo do topbar ---- */
 .list-detail-cover {
   position: relative;
-  height: 220px;
+  height: 196px;
   /* cancela o padding da .page: encosta nas laterais e no topbar */
   margin: -24px -16px 0;
   overflow: hidden;
   background: var(--surface-low);
+}
+
+/* ---- Cartão de informações flutuante (Editorial) — sobrepõe a base da capa ---- */
+.list-info-card {
+  position: relative;
+  z-index: 2;
+  /* sobe sobre a capa (~30px), compensando o gap de 24px da .list-detail-page */
+  margin-top: -54px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px rgba(36, 41, 65, 0.12);
+}
+
+.list-info-card__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.list-info-card__owner {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  flex: 1;
+  color: inherit;
+}
+
+.list-info-card__avatar {
+  display: inline-flex;
+  flex: none;
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 2px var(--surface-strong),
+    0 0 0 3px rgba(176, 116, 53, 0.55);
+}
+
+.list-info-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.list-info-card__text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list-info-card__text span {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.25;
+}
+
+.list-info-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.list-info-card__toggle,
+.list-info-card__more {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--muted-2);
+  transition: background 0.15s ease;
+}
+
+.list-info-card__toggle:hover,
+.list-info-card__more:hover {
+  background: var(--surface-low);
+}
+
+.list-info-card__share {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  transition: filter 0.15s ease;
+}
+
+.list-info-card__share:hover {
+  filter: brightness(1.08);
+}
+
+.list-info-card__share .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.list-info-card__divider {
+  height: 1px;
+  margin: 12px 0;
+  background: var(--line);
+}
+
+.list-info-card__desc {
+  margin: 0;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted-2);
+  white-space: pre-line;
 }
 
 .list-detail-cover__img {
@@ -5422,7 +5566,8 @@ button.explore-product-card {
 .list-cover__change {
   position: absolute;
   right: 12px;
-  bottom: 12px;
+  /* acima do cartão de info flutuante (que sobe ~30px sobre a capa) */
+  bottom: 44px;
   display: inline-flex;
   align-items: center;
   gap: 6px;

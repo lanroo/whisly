@@ -4935,31 +4935,43 @@ button.explore-product-card {
   white-space: pre-line;
 }
 
-/* ---- Cabeçalho da lista: capa embutida + membros/dono + descrição, num card só ---- */
-.list-detail-hero {
-  margin-bottom: 18px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--surface-strong);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-1);
-}
-
-.list-detail-hero__cover {
+/* ---- Capa full-bleed (largura total da tela), logo abaixo do topbar ---- */
+.list-detail-cover {
   position: relative;
-  height: 168px;
+  height: 220px;
+  /* cancela o padding da .page: encosta nas laterais e no topbar */
+  margin: -24px -16px 0;
+  overflow: hidden;
   background: var(--surface-low);
 }
 
-.list-detail-hero__scrim {
+.list-detail-cover__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-detail-cover__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 52%, rgba(20, 24, 45, 0.3) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(20, 24, 45, 0.1) 0%,
+    transparent 28%,
+    transparent 60%,
+    rgba(20, 24, 45, 0.34) 100%
+  );
   pointer-events: none;
 }
 
-.list-detail-hero__body {
+/* ---- Card de dados abaixo da capa (dono/membros + ações + descrição) ---- */
+.list-detail-header {
   padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
 }
 
 .list-detail-header__row {

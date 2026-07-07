@@ -1,8 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { AuthSocialButtons } from '../components/AuthSocialButtons';
-import { MaterialIcon } from '../components/MaterialIcon';
 import { PasswordField } from '../components/PasswordField';
 import { useAuth } from '../shared/auth';
 import { useToast } from '../shared/ui';
@@ -12,10 +10,29 @@ function normalizeHandle(raw: string): string {
   return raw.trim().replace(/^@+/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
 }
 
+/** Ilustração flat: caixa de presente — tela de cadastro. */
+function RegisterIllustration() {
+  return (
+    <svg aria-hidden="true" fill="none" height="90" viewBox="0 0 180 110" width="148">
+      <circle cx="90" cy="55" r="44" fill="#ECEFF7" />
+      <rect fill="#2F3551" height="38" rx="6" width="48" x="66" y="48" />
+      <rect fill="#1E2338" height="14" rx="5" width="58" x="61" y="38" />
+      <rect fill="#FFFFFF" height="48" rx="2" width="8" x="86" y="38" />
+      <ellipse cx="81" cy="32" fill="#C5CCDF" rx="7" ry="5.5" />
+      <ellipse cx="99" cy="32" fill="#C5CCDF" rx="7" ry="5.5" />
+      <circle cx="90" cy="33" fill="#FFFFFF" r="3.5" />
+      <path d="M32 40h10M37 35v10" stroke="#C5CCDF" strokeLinecap="round" strokeWidth="2.5" />
+      <path d="M140 30h8M144 26v8" stroke="#C5CCDF" strokeLinecap="round" strokeWidth="2.2" />
+      <circle cx="146" cy="66" r="3.5" fill="#C5CCDF" />
+      <circle cx="40" cy="74" r="4" fill="#E2E6F0" />
+    </svg>
+  );
+}
+
 export function RegisterPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signUp, signInWithOAuth } = useAuth();
+  const { signUp } = useAuth();
   const [handle, setHandle] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -87,31 +104,31 @@ export function RegisterPage() {
     navigate('/home');
   }
 
-  async function handleOAuth(provider: 'google' | 'apple') {
-    const { error } = await signInWithOAuth(provider);
-    if (error) {
-      toast.show({ variant: 'error', title: 'Cadastro social', description: error });
-    }
-  }
-
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <div className="auth-brand">
-          <span className="auth-brand__logo">W</span>
-          <span className="auth-brand__name">Wishly</span>
+    <main className="auth-screen">
+      <div aria-hidden="true" className="auth-screen__deco">
+        <span />
+        <span />
+        <span />
+        <span />
+        <i>+</i>
+        <i>+</i>
+      </div>
+
+      <header className="auth-screen__brand">Wishly</header>
+
+      <section className="auth-screen__card">
+        <div className="auth-screen__illo">
+          <RegisterIllustration />
         </div>
 
-        <div className="auth-card__header">
-          <h1>Criar conta</h1>
-          <p className="auth-card__subtitle">Comece a organizar e compartilhar seus desejos.</p>
-        </div>
+        <h1 className="auth-screen__title">Criar conta</h1>
+        <p className="auth-screen__subtitle">Comece a guardar seus desejos num só lugar.</p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-screen__form" onSubmit={handleSubmit}>
           <label className="field">
             <span>Nome</span>
             <div className="field__control">
-              <MaterialIcon className="field__icon" name="person" />
               <input autoComplete="name" name="name" placeholder="Seu nome" required type="text" />
             </div>
           </label>
@@ -119,7 +136,6 @@ export function RegisterPage() {
           <label className="field">
             <span>Usuário</span>
             <div className="field__control">
-              <MaterialIcon className="field__icon" name="alternate_email" />
               <input
                 autoCapitalize="none"
                 autoComplete="username"
@@ -138,7 +154,6 @@ export function RegisterPage() {
           <label className="field">
             <span>E-mail</span>
             <div className="field__control">
-              <MaterialIcon className="field__icon" name="mail" />
               <input autoComplete="email" name="email" placeholder="nome@exemplo.com" required type="email" />
             </div>
           </label>
@@ -147,14 +162,11 @@ export function RegisterPage() {
           <PasswordField autoComplete="new-password" label="Confirmar senha" name="confirm" />
 
           <button className="primary-button primary-button--full" disabled={submitting} type="submit">
-            <span>{submitting ? 'Criando...' : 'Criar conta'}</span>
-            <MaterialIcon name="arrow_forward" />
+            {submitting ? 'Criando...' : 'Criar conta'}
           </button>
         </form>
 
-        <AuthSocialButtons label="Ou cadastre-se com" onSelect={handleOAuth} />
-
-        <p className="auth-card__footer">
+        <p className="auth-screen__footer">
           Já tem uma conta? <Link to="/login">Entrar</Link>
         </p>
       </section>

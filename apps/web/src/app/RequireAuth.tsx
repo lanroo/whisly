@@ -4,7 +4,7 @@ import { useAuth } from '@/shared/auth';
 /**
  * Guarda de rotas: bloqueia telas que exigem login.
  * - Enquanto carrega a sessão, mostra um loader.
- * - Sem usuário (e Supabase configurado), redireciona para /login.
+ * - Sem usuário (e Supabase configurado), redireciona para /welcome.
  * - Em modo demo (sem Supabase), libera o acesso.
  */
 export function RequireAuth() {
@@ -19,7 +19,7 @@ export function RequireAuth() {
   }
 
   if (isConfigured && !user) {
-    return <Navigate replace to="/login" />;
+    return <Navigate replace to="/welcome" />;
   }
 
   return <Outlet />;

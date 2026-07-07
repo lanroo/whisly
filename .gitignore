@@ -39,3 +39,4 @@ coverage
 *.sw?
 
 .vercel
+.mcp.json

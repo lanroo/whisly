@@ -1163,26 +1163,15 @@ function ItemListRow({
 
   return (
     <li className="item-card">
-      {item.url ? (
-        <a className="item-card__link" href={item.url} rel="noreferrer" target="_blank">
-          {inner}
-        </a>
-      ) : (
-        <div className="item-card__link">{inner}</div>
-      )}
+      <div className="item-card__row">
+        {item.url ? (
+          <a className="item-card__link" href={item.url} rel="noreferrer" target="_blank">
+            {inner}
+          </a>
+        ) : (
+          <div className="item-card__link">{inner}</div>
+        )}
 
-      <div className="item-card__actions">
-        {canReserve ? (
-          <button
-            className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
-            disabled={reserving || reservedByOther}
-            onClick={onReserve}
-            type="button"
-          >
-            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
-            {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
-          </button>
-        ) : null}
         {mine ? (
           <div className="item-card__menu" ref={menuRef}>
             <button
@@ -1226,6 +1215,18 @@ function ItemListRow({
           </div>
         ) : null}
       </div>
+
+      {canReserve ? (
+        <button
+          className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+          disabled={reserving || reservedByOther}
+          onClick={onReserve}
+          type="button"
+        >
+          <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+          {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
+        </button>
+      ) : null}
     </li>
   );
 }

@@ -12,19 +12,19 @@ export const PRIVACY_CHOICES: PrivacyChoice[] = [
   {
     value: 'private',
     title: 'Privada',
-    description: 'Apenas você pode ver e editar',
+    description: 'Só você vê e edita',
     icon: 'lock',
   },
   {
     value: 'collaborative',
     title: 'Colaborativa',
-    description: 'Amigos podem adicionar e interagir',
+    description: 'Quem tem o link ou você convidar pode ver e editar',
     icon: 'group',
   },
   {
     value: 'public',
     title: 'Pública',
-    description: 'Qualquer pessoa com o link',
+    description: 'Visível para quem já te adicionou (só ver)',
     icon: 'public',
   },
 ];

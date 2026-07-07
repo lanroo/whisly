@@ -116,7 +116,9 @@ export function ListDetailsPage() {
     () => collaborators?.find((c) => c.userId === user?.id)?.role,
     [collaborators, user?.id],
   );
-  const canEdit = isOwner || myRole === 'editor' || myRole === 'owner';
+  // Colaborativa: qualquer um com o link pode editar. Pública/privada: só dono/editor convidado.
+  const canEdit =
+    isOwner || list?.privacy === 'collaborative' || myRole === 'editor' || myRole === 'owner';
 
   // Fecha o menu ao clicar fora.
   useEffect(() => {

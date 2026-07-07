@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
+import { Brand } from '../components/Brand';
 import { MaterialIcon } from '../components/MaterialIcon';
 import { MyAvatar } from '../components/MyAvatar';
 import { useUnreadActivityCount } from '../features/activity/api';
@@ -206,7 +207,7 @@ export function HomePage() {
     >
       <header className="wishly-home-topbar">
         <div className="wishly-home-topbar__inner">
-          <span className="wishly-home-topbar__brand">Wishly</span>
+          <Brand />
           <div className="wishly-home-topbar__actions">
             <Link aria-label="Notificações" className="icon-button bell-wrap" to="/activity">
               <MaterialIcon name="notifications" />

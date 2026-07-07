@@ -30,9 +30,10 @@ export function ListsPage() {
     >
       <TopBar
         backTo="/home"
+        brand
         onRight={() => setSearchOpen((open) => !open)}
         rightIcon={searchOpen ? 'close' : 'search'}
-        title="WISHLY"
+        title="Wishly"
       />
 
       <main className="page lists-page">

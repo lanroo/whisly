@@ -17,18 +17,14 @@ export function CreateFlowHeader({
   return (
     <header className="create-flow-header">
       <div className="create-flow-header__inner">
-        <Link aria-label="Voltar" className="create-flow-header__button" to={backTo}>
-          <MaterialIcon name="arrow_back" />
+        <Link aria-label="Voltar" className="icon-button" to={backTo}>
+          <MaterialIcon name="chevron_left" />
         </Link>
 
         <h1>{title}</h1>
 
         {rightIcon ? (
-          <button
-            aria-label={rightLabel ?? 'Ação'}
-            className="create-flow-header__button"
-            type="button"
-          >
+          <button aria-label={rightLabel ?? 'Ação'} className="icon-button" type="button">
             <MaterialIcon name={rightIcon} />
           </button>
         ) : (

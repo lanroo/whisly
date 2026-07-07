@@ -359,21 +359,44 @@ input {
 }
 
 .desktop-header__inner,
+/* Header padrão: seta (margem esquerda) | título centralizado | ação. */
 .top-bar__inner {
   width: min(100%, var(--content-width));
   margin: 0 auto;
   padding: 14px 16px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 8px;
   align-items: center;
-  justify-content: space-between;
+}
+
+.top-bar__inner > h1 {
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.top-bar__inner > .brand {
+  justify-self: center;
+}
+
+.top-bar__inner > :last-child {
+  justify-self: end;
 }
 
 .desktop-header__inner h1,
-.top-bar h1 {
+/* Título de header — mesma fonte serif da marca (padrão em todas as telas). */
+.top-bar h1,
+.create-flow-header h1,
+.collaborators-topbar__inner h1 {
   margin: 0;
-  font-size: 28px;
-  letter-spacing: -0.04em;
-  color: var(--primary);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text);
 }
 
 .avatar {
@@ -1547,7 +1570,7 @@ input {
   font-size: 22px;
   font-weight: 600;
   line-height: 28px;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 
 .wishly-list-shell .icon-button {
@@ -1580,8 +1603,21 @@ input {
   margin: 0 auto;
   padding: 0 16px;
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 8px;
   align-items: center;
+}
+
+.create-flow-header__inner > h1 {
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.create-flow-header__inner > :last-child {
+  justify-self: end;
 }
 
 .create-flow-header__inner h1 {
@@ -2236,9 +2272,22 @@ input {
   height: 56px;
   margin: 0 auto;
   padding: 0 16px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  gap: 8px;
   align-items: center;
-  justify-content: space-between;
+}
+
+.collaborators-topbar__inner > h1 {
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.collaborators-topbar__inner > :last-child {
+  justify-self: end;
 }
 
 .explore-topbar__spacer {
@@ -3533,26 +3582,45 @@ input {
   font-size: 15px;
 }
 
-.auth-screen__brand {
+/* ============================================================
+   LOGOMARCA CANÔNICA — selo "W" + wordmark "WISHLY".
+   Fonte única de verdade: componente <Brand />. Serif (Playfair),
+   maiúsculas, mesmo tamanho e espaçamento em todo o app.
+   ============================================================ */
+.brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: var(--accent);
+  gap: 10px;
+  line-height: 1;
+  color: var(--text);
 }
 
-.auth-screen__brand-logo {
-  display: inline-flex;
-}
-
-.auth-screen__brand-logo svg {
-  display: block;
-}
-
-.auth-screen__brand-name {
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.005em;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.brand__name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* Wrapper do brand nas telas de auth (posição/centralização). */
+.auth-screen__brand {
+  display: inline-flex;
 }
 
 .auth-screen__card {
@@ -4844,6 +4912,235 @@ button.explore-product-card {
   color: #46464d;
   line-height: 1.5;
   white-space: pre-line;
+}
+
+/* ---- Cabeçalho da lista: membros + compartilhar + menu (3 pontinhos) ---- */
+.list-detail-header {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-1);
+}
+
+.list-detail-header__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.list-detail-header__members {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+.list-detail-header__avatar {
+  display: inline-flex;
+  margin-left: -9px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--surface-strong);
+}
+
+.list-detail-header__avatar:first-child {
+  margin-left: 0;
+}
+
+.list-detail-header__more {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-blue-strong);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.list-detail-header__tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.list-detail-header__share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--surface-blue-strong);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  transition: filter 0.15s ease;
+}
+
+.list-detail-header__share:hover {
+  filter: brightness(0.96);
+}
+
+.list-detail-header__share .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.list-detail-menu {
+  position: relative;
+}
+
+.list-detail-menu__trigger {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--muted-2);
+  transition: background 0.15s ease;
+}
+
+.list-detail-menu__trigger:hover {
+  background: var(--surface-low);
+}
+
+.list-detail-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 184px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-2);
+  z-index: var(--z-nav);
+}
+
+.list-detail-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.list-detail-menu__item:hover {
+  background: var(--surface-low);
+}
+
+.list-detail-menu__item .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.list-detail-menu__item--danger {
+  color: var(--danger);
+}
+
+.list-detail-menu__item--danger .material-symbols-outlined {
+  color: var(--danger);
+}
+
+.list-detail-header__desc {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted-2);
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+/* ---- Capa da lista (preview + trocar) ---- */
+.list-cover {
+  position: relative;
+  height: 152px;
+  margin-bottom: 16px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--surface-low);
+}
+
+.list-cover__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-cover__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(20, 24, 45, 0.38) 100%);
+  pointer-events: none;
+}
+
+.list-cover__change {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-1);
+  transition: background 0.15s ease;
+}
+
+.list-cover__change:hover {
+  background: #fff;
+}
+
+.list-cover__change.is-loading {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.list-cover__change .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* ---- Menu de 3 pontinhos por item ---- */
+.item-card__menu {
+  position: relative;
+}
+
+.item-card__menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  color: var(--muted-2);
+  transition: background 0.15s ease;
+}
+
+.item-card__menu-trigger:hover {
+  background: var(--surface-low);
+}
+
+.item-card__menu-dropdown {
+  min-width: 168px;
 }
 
 .list-detail-actions {

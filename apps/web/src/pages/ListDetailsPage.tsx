@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
+import { MyAvatar } from '../components/MyAvatar';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { TopBar } from '../components/TopBar';
 import {
@@ -18,6 +19,7 @@ import {
   useRemoveCollaborator,
   useReserveItem,
   useUnreserveItem,
+  useUpdateItem,
   useUpdateItemStatus,
   useUpdateList,
   type CollaboratorRole,
@@ -64,8 +66,13 @@ export function ListDetailsPage() {
   const reserveItem = useReserveItem(listId ?? '');
   const unreserveItem = useUnreserveItem(listId ?? '');
   const updateItemStatus = useUpdateItemStatus(listId ?? '');
+  const updateItem = useUpdateItem(listId ?? '');
 
-  // Form de adicionar item (modal)
+  // Capa da lista
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  // Form de adicionar / editar item (modal)
+  const [editingItem, setEditingItem] = useState<ListItem | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -100,12 +107,28 @@ export function ListDetailsPage() {
   const [editNotify, setEditNotify] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  // Menu de opções da lista (3 pontinhos)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const isOwner = Boolean(user) && list?.ownerId === user?.id;
   const myRole = useMemo(
     () => collaborators?.find((c) => c.userId === user?.id)?.role,
     [collaborators, user?.id],
   );
   const canEdit = isOwner || myRole === 'editor' || myRole === 'owner';
+
+  // Fecha o menu ao clicar fora.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
 
   // Captura automática ao colar o link (debounce). Só preenche campos vazios.
   useEffect(() => {
@@ -161,6 +184,7 @@ export function ListDetailsPage() {
 
   function closeForm() {
     setAddOpen(false);
+    setEditingItem(null);
     setUrl('');
     setTitle('');
     setPrice('');
@@ -170,6 +194,42 @@ export function ListDetailsPage() {
     lastCaptured.current = '';
   }
 
+  function openItemEdit(item: ListItem) {
+    setEditingItem(item);
+    setUrl(item.url ?? '');
+    setTitle(item.title);
+    setPrice(item.price ?? '');
+    setImage(item.imageUrl ?? null);
+    setStore(item.store ?? null);
+    setStatus(item.status);
+    lastCaptured.current = item.url ?? ''; // evita a auto-captura sobrescrever
+    setAddOpen(true);
+  }
+
+  async function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.show({ variant: 'error', title: 'Selecione um arquivo de imagem' });
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const uploaded = await uploadItemImage(file);
+      await updateList.mutateAsync({ coverImage: uploaded });
+      toast.show({ variant: 'success', title: 'Capa atualizada' });
+    } catch (error) {
+      toast.show({
+        variant: 'error',
+        title: 'Não foi possível trocar a capa',
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
   async function handleAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!title.trim()) {
@@ -177,13 +237,24 @@ export function ListDetailsPage() {
       return;
     }
     try {
-      await addItem.mutateAsync({ title, url, price, imageUrl: image, store, status });
+      if (editingItem) {
+        await updateItem.mutateAsync({
+          itemId: editingItem.id,
+          input: { title, url, price, imageUrl: image, store, status },
+        });
+      } else {
+        await addItem.mutateAsync({ title, url, price, imageUrl: image, store, status });
+      }
+      const wasEditing = Boolean(editingItem);
       closeForm();
-      toast.show({ variant: 'success', title: 'Produto adicionado' });
+      toast.show({
+        variant: 'success',
+        title: wasEditing ? 'Produto atualizado' : 'Produto adicionado',
+      });
     } catch (error) {
       toast.show({
         variant: 'error',
-        title: 'Não foi possível adicionar',
+        title: editingItem ? 'Não foi possível atualizar' : 'Não foi possível adicionar',
         description: error instanceof Error ? error.message : undefined,
       });
     }
@@ -339,7 +410,105 @@ export function ListDetailsPage() {
       />
 
       <main className="page list-detail-page">
-        {list?.description ? <p className="list-detail-desc">{list.description}</p> : null}
+        <div className="list-cover">
+          {list?.image ? <img alt="" className="list-cover__img" src={list.image} /> : null}
+          <div className="list-cover__overlay" />
+          {isOwner ? (
+            <label className={`list-cover__change ${uploadingCover ? 'is-loading' : ''}`.trim()}>
+              <input
+                accept="image/*"
+                disabled={uploadingCover}
+                hidden
+                onChange={handleCoverChange}
+                type="file"
+              />
+              <MaterialIcon name={uploadingCover ? 'progress_activity' : 'photo_camera'} />
+              {uploadingCover ? 'Enviando...' : 'Trocar capa'}
+            </label>
+          ) : null}
+        </div>
+
+        <section className="list-detail-header">
+          <div className="list-detail-header__row">
+            <div aria-label="Membros da lista" className="list-detail-header__members">
+              {isOwner && !collabList.some((c) => c.userId === user?.id) ? (
+                <span className="list-detail-header__avatar" title="Você · Dono">
+                  <MyAvatar size="sm" />
+                </span>
+              ) : null}
+              {collabList.slice(0, 5).map((c) => (
+                <span
+                  className="list-detail-header__avatar"
+                  key={c.userId}
+                  title={c.role === 'owner' ? `${c.name} · Dono` : c.name}
+                >
+                  <Avatar name={c.name} size="sm" src={c.avatarUrl ?? undefined} />
+                </span>
+              ))}
+              {collabList.length > 5 ? (
+                <span className="list-detail-header__avatar list-detail-header__more">
+                  +{collabList.length - 5}
+                </span>
+              ) : null}
+            </div>
+
+            {isOwner ? (
+              <div className="list-detail-header__tools">
+                <button
+                  className="list-detail-header__share"
+                  onClick={() => setShareOpen(true)}
+                  type="button"
+                >
+                  <MaterialIcon name="person_add" />
+                  Compartilhar
+                </button>
+                <div className="list-detail-menu" ref={menuRef}>
+                  <button
+                    aria-haspopup="menu"
+                    aria-label="Opções da lista"
+                    className="list-detail-menu__trigger"
+                    onClick={() => setMenuOpen((open) => !open)}
+                    type="button"
+                  >
+                    <MaterialIcon name="more_vert" />
+                  </button>
+                  {menuOpen ? (
+                    <div className="list-detail-menu__dropdown" role="menu">
+                      <button
+                        className="list-detail-menu__item"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          openEdit();
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <MaterialIcon name="edit" />
+                        Editar lista
+                      </button>
+                      <button
+                        className="list-detail-menu__item list-detail-menu__item--danger"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setConfirmDelete(true);
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <MaterialIcon name="delete" />
+                        Excluir lista
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {list?.description ? (
+            <p className="list-detail-header__desc">{list.description}</p>
+          ) : null}
+        </section>
 
         {searchOpen ? (
           <label className="search-box list-item-search">
@@ -352,32 +521,6 @@ export function ListDetailsPage() {
               value={search}
             />
           </label>
-        ) : null}
-
-        {isOwner ? (
-          <div className="list-detail-actions">
-            <Button icon="group_add" onClick={() => setShareOpen(true)} variant="secondary">
-              Compartilhar{collabList.length > 0 ? ` (${collabList.length})` : ''}
-            </Button>
-            <div className="list-detail-actions__icons">
-              <button
-                aria-label="Editar lista"
-                className="list-detail-actions__icon"
-                onClick={openEdit}
-                type="button"
-              >
-                <MaterialIcon name="edit" />
-              </button>
-              <button
-                aria-label="Excluir lista"
-                className="list-detail-actions__icon list-detail-actions__icon--danger"
-                onClick={() => setConfirmDelete(true)}
-                type="button"
-              >
-                <MaterialIcon name="delete" />
-              </button>
-            </div>
-          </div>
         ) : null}
 
         {canEdit ? (
@@ -423,6 +566,7 @@ export function ListDetailsPage() {
                 key={item.id}
                 mine={canEdit && (isOwner || item.addedBy === user?.id)}
                 onDelete={() => handleDelete(item.id)}
+                onEdit={() => openItemEdit(item)}
                 onEditStatus={() => openStatusEdit(item)}
                 onReserve={() => handleReserve(item)}
                 removing={deleteItem.isPending}
@@ -435,7 +579,7 @@ export function ListDetailsPage() {
         )}
       </main>
 
-      <Modal onClose={closeForm} open={addOpen} title="Adicionar item">
+      <Modal onClose={closeForm} open={addOpen} title={editingItem ? 'Editar item' : 'Adicionar item'}>
         <form className="additem-form" onSubmit={handleAdd}>
           <div className="additem-link">
             <div className="ui-field__control ui-field__control--with-icon">
@@ -741,6 +885,7 @@ function ItemRow({
   item,
   mine,
   onDelete,
+  onEdit,
   removing,
   canReserve,
   currentUserId,
@@ -753,6 +898,7 @@ function ItemRow({
   item: ListItem;
   mine: boolean;
   onDelete: () => void;
+  onEdit: () => void;
   removing: boolean;
   canReserve: boolean;
   currentUserId: string | undefined;
@@ -764,6 +910,19 @@ function ItemRow({
 }) {
   const reservedByMe = item.reservation?.reservedBy === currentUserId;
   const reservedByOther = Boolean(item.reservation) && !reservedByMe;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
   const inner = (
     <>
       <div className="item-card__media">
@@ -825,15 +984,46 @@ function ItemRow({
           </button>
         ) : null}
         {mine ? (
-          <button
-            aria-label="Remover produto"
-            className="item-card__delete"
-            disabled={removing}
-            onClick={onDelete}
-            type="button"
-          >
-            <MaterialIcon name="delete" />
-          </button>
+          <div className="item-card__menu" ref={menuRef}>
+            <button
+              aria-haspopup="menu"
+              aria-label="Opções do item"
+              className="item-card__menu-trigger"
+              onClick={() => setMenuOpen((open) => !open)}
+              type="button"
+            >
+              <MaterialIcon name="more_vert" />
+            </button>
+            {menuOpen ? (
+              <div className="list-detail-menu__dropdown item-card__menu-dropdown" role="menu">
+                <button
+                  className="list-detail-menu__item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onEdit();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  <MaterialIcon name="edit" />
+                  Editar item
+                </button>
+                <button
+                  className="list-detail-menu__item list-detail-menu__item--danger"
+                  disabled={removing}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                  role="menuitem"
+                  type="button"
+                >
+                  <MaterialIcon name="delete" />
+                  Excluir item
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </li>

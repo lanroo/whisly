@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -431,6 +431,7 @@ export function ListDetailsPage() {
         </div>
 
         <section className="list-detail-header">
+          {isOwner ? (
           <div className="list-detail-header__row">
             <div aria-label="Membros da lista" className="list-detail-header__members">
               {isOwner && !collabList.some((c) => c.userId === user?.id) ? (
@@ -506,6 +507,16 @@ export function ListDetailsPage() {
               </div>
             ) : null}
           </div>
+          ) : (
+            <Link className="list-detail-owner" to={`/u/${list?.ownerId ?? ''}`}>
+              <Avatar name={list?.ownerName} size="md" src={list?.ownerAvatar ?? undefined} />
+              <div className="list-detail-owner__info">
+                <strong>Lista de {list?.ownerName ?? 'alguém'}</strong>
+                {list?.ownerHandle ? <span>@{list.ownerHandle}</span> : null}
+              </div>
+              <MaterialIcon className="list-detail-owner__chevron" name="chevron_right" />
+            </Link>
+          )}
 
           {list?.description ? (
             <p className="list-detail-header__desc">{list.description}</p>

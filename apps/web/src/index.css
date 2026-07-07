@@ -5083,6 +5083,39 @@ button.explore-product-card {
   white-space: pre-line;
 }
 
+/* Atribuição do dono (quando você vê a lista de outra pessoa). */
+.list-detail-owner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+}
+
+.list-detail-owner__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.list-detail-owner__info strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.list-detail-owner__info span {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.list-detail-owner__chevron {
+  color: var(--muted);
+  flex: none;
+}
+
 /* ---- Capa da lista (preview + trocar) ---- */
 .list-cover {
   position: relative;

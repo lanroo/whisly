@@ -212,6 +212,9 @@ export interface ListSummary {
   description: string | null;
   privacy: ListPrivacy;
   ownerId: string;
+  ownerName: string;
+  ownerHandle: string | null;
+  ownerAvatar: string | null;
   showPrices: boolean;
   showPriority: boolean;
   notifyNewItems: boolean;
@@ -245,12 +248,22 @@ async function fetchList(listId: string): Promise<ListSummary | null> {
 
   if (error) throw error;
   if (!data) return null;
+
+  const { data: owner } = await supabase
+    .from('profiles')
+    .select('name, handle, avatar_url')
+    .eq('id', data.owner_id)
+    .maybeSingle();
+
   return {
     id: data.id,
     title: data.title,
     description: data.description,
     privacy: data.privacy,
     ownerId: data.owner_id,
+    ownerName: owner?.name ?? 'Usuário',
+    ownerHandle: owner?.handle ?? null,
+    ownerAvatar: owner?.avatar_url ?? null,
     showPrices: data.show_prices,
     showPriority: data.show_priority,
     notifyNewItems: data.notify_new_items,

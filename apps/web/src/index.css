@@ -3553,6 +3553,14 @@ input {
   margin-bottom: 6px;
 }
 
+.auth-screen__illo-img {
+  height: 220px;
+  width: auto;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 .auth-screen__title {
   margin: 10px 0 4px;
   color: var(--text);

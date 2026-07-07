@@ -5297,6 +5297,9 @@ button.explore-product-card {
 }
 
 .item-grid-card__menu-trigger {
+  position: absolute;
+  top: 6px;
+  right: 6px;
   display: grid;
   place-items: center;
   width: 30px;
@@ -5321,6 +5324,7 @@ button.explore-product-card {
 
 .item-grid-card__body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px 12px;
@@ -5353,7 +5357,7 @@ button.explore-product-card {
 }
 
 .item-grid-card__reserve {
-  margin-top: 6px;
+  margin-top: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;

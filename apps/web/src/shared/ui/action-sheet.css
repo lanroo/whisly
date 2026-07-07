@@ -1,0 +1,41 @@
+.action-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.action-sheet__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 12px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.action-sheet__item .material-symbols-outlined {
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.action-sheet__item:hover:not(:disabled),
+.action-sheet__item:active:not(:disabled) {
+  background: var(--surface-low);
+}
+
+.action-sheet__item:disabled {
+  opacity: 0.5;
+}
+
+.action-sheet__item--danger {
+  color: var(--danger);
+}
+
+.action-sheet__item--danger .material-symbols-outlined {
+  color: var(--danger);
+}

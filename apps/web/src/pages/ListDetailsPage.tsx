@@ -29,7 +29,7 @@ import {
 } from '../features/lists/api';
 import { useAuth } from '../shared/auth';
 import { PRIVACY_CHOICES } from '../shared/config/privacy';
-import { Avatar, Button, EmptyState, Modal, Skeleton, useToast } from '../shared/ui';
+import { ActionSheet, Avatar, Button, EmptyState, Modal, Skeleton, useToast } from '../shared/ui';
 
 const ROLE_LABEL: Record<CollaboratorRole, string> = {
   owner: 'Dono',
@@ -116,9 +116,8 @@ export function ListDetailsPage() {
   const [editNotify, setEditNotify] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // Menu de opções da lista (3 pontinhos)
+  // Menu de opções da lista (3 pontinhos) — bottom-sheet
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   const isOwner = Boolean(user) && list?.ownerId === user?.id;
   const myRole = useMemo(
@@ -128,18 +127,6 @@ export function ListDetailsPage() {
   // Colaborativa: qualquer um com o link pode editar. Pública/privada: só dono/editor convidado.
   const canEdit =
     isOwner || list?.privacy === 'collaborative' || myRole === 'editor' || myRole === 'owner';
-
-  // Fecha o menu ao clicar fora.
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onClick(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [menuOpen]);
 
   // Captura automática ao colar o link (debounce). Só preenche campos vazios.
   useEffect(() => {
@@ -495,45 +482,15 @@ export function ListDetailsPage() {
                 </button>
               ) : null}
               {isOwner ? (
-                <div className="list-detail-menu" ref={menuRef}>
-                  <button
-                    aria-haspopup="menu"
-                    aria-label="Opções da lista"
-                    className="list-info-card__more"
-                    onClick={() => setMenuOpen((open) => !open)}
-                    type="button"
-                  >
-                    <MaterialIcon name="more_vert" />
-                  </button>
-                  {menuOpen ? (
-                    <div className="list-detail-menu__dropdown" role="menu">
-                      <button
-                        className="list-detail-menu__item"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          openEdit();
-                        }}
-                        role="menuitem"
-                        type="button"
-                      >
-                        <MaterialIcon name="edit" />
-                        Editar lista
-                      </button>
-                      <button
-                        className="list-detail-menu__item list-detail-menu__item--danger"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setConfirmDelete(true);
-                        }}
-                        role="menuitem"
-                        type="button"
-                      >
-                        <MaterialIcon name="delete" />
-                        Excluir lista
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                <button
+                  aria-haspopup="menu"
+                  aria-label="Opções da lista"
+                  className="list-info-card__more"
+                  onClick={() => setMenuOpen(true)}
+                  type="button"
+                >
+                  <MaterialIcon name="more_vert" />
+                </button>
               ) : null}
             </div>
           </div>
@@ -930,6 +887,21 @@ export function ListDetailsPage() {
           </div>
         </div>
       </Modal>
+
+      <ActionSheet
+        actions={[
+          { icon: 'edit', label: 'Editar lista', onClick: openEdit },
+          {
+            icon: 'delete',
+            label: 'Excluir lista',
+            danger: true,
+            onClick: () => setConfirmDelete(true),
+          },
+        ]}
+        onClose={() => setMenuOpen(false)}
+        open={menuOpen}
+        title={list?.title}
+      />
     </AppShell>
   );
 }
@@ -964,18 +936,6 @@ function ItemGridCard({
   const reservedByMe = item.reservation?.reservedBy === currentUserId;
   const reservedByOther = Boolean(item.reservation) && !reservedByMe;
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onClick(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [menuOpen]);
 
   const media = item.imageUrl ? (
     <img alt="" className="item-grid-card__thumb" src={item.imageUrl} />
@@ -1021,46 +981,15 @@ function ItemGridCard({
         ) : null}
 
         {mine ? (
-          <div className="item-grid-card__menu" ref={menuRef}>
-            <button
-              aria-haspopup="menu"
-              aria-label="Opções do item"
-              className="item-grid-card__menu-trigger"
-              onClick={() => setMenuOpen((open) => !open)}
-              type="button"
-            >
-              <MaterialIcon name="more_vert" />
-            </button>
-            {menuOpen ? (
-              <div className="list-detail-menu__dropdown item-grid-card__menu-dropdown" role="menu">
-                <button
-                  className="list-detail-menu__item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onEdit();
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  <MaterialIcon name="edit" />
-                  Editar item
-                </button>
-                <button
-                  className="list-detail-menu__item list-detail-menu__item--danger"
-                  disabled={removing}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onDelete();
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  <MaterialIcon name="delete" />
-                  Excluir item
-                </button>
-              </div>
-            ) : null}
-          </div>
+          <button
+            aria-haspopup="menu"
+            aria-label="Opções do item"
+            className="item-grid-card__menu-trigger"
+            onClick={() => setMenuOpen(true)}
+            type="button"
+          >
+            <MaterialIcon name="more_vert" />
+          </button>
         ) : null}
       </div>
 
@@ -1082,6 +1011,24 @@ function ItemGridCard({
           </button>
         ) : null}
       </div>
+
+      {mine ? (
+        <ActionSheet
+          actions={[
+            { icon: 'edit', label: 'Editar item', onClick: onEdit },
+            {
+              icon: 'delete',
+              label: 'Excluir item',
+              danger: true,
+              disabled: removing,
+              onClick: onDelete,
+            },
+          ]}
+          onClose={() => setMenuOpen(false)}
+          open={menuOpen}
+          title={item.title}
+        />
+      ) : null}
     </li>
   );
 }
@@ -1116,18 +1063,6 @@ function ItemListRow({
   const reservedByMe = item.reservation?.reservedBy === currentUserId;
   const reservedByOther = Boolean(item.reservation) && !reservedByMe;
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onClick(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [menuOpen]);
 
   const inner = (
     <>
@@ -1173,46 +1108,15 @@ function ItemListRow({
         )}
 
         {mine ? (
-          <div className="item-card__menu" ref={menuRef}>
-            <button
-              aria-haspopup="menu"
-              aria-label="Opções do item"
-              className="item-card__menu-trigger"
-              onClick={() => setMenuOpen((open) => !open)}
-              type="button"
-            >
-              <MaterialIcon name="more_vert" />
-            </button>
-            {menuOpen ? (
-              <div className="list-detail-menu__dropdown item-card__menu-dropdown" role="menu">
-                <button
-                  className="list-detail-menu__item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onEdit();
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  <MaterialIcon name="edit" />
-                  Editar item
-                </button>
-                <button
-                  className="list-detail-menu__item list-detail-menu__item--danger"
-                  disabled={removing}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onDelete();
-                  }}
-                  role="menuitem"
-                  type="button"
-                >
-                  <MaterialIcon name="delete" />
-                  Excluir item
-                </button>
-              </div>
-            ) : null}
-          </div>
+          <button
+            aria-haspopup="menu"
+            aria-label="Opções do item"
+            className="item-card__menu-trigger"
+            onClick={() => setMenuOpen(true)}
+            type="button"
+          >
+            <MaterialIcon name="more_vert" />
+          </button>
         ) : null}
       </div>
 
@@ -1226,6 +1130,24 @@ function ItemListRow({
           <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
           {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
         </button>
+      ) : null}
+
+      {mine ? (
+        <ActionSheet
+          actions={[
+            { icon: 'edit', label: 'Editar item', onClick: onEdit },
+            {
+              icon: 'delete',
+              label: 'Excluir item',
+              danger: true,
+              disabled: removing,
+              onClick: onDelete,
+            },
+          ]}
+          onClose={() => setMenuOpen(false)}
+          open={menuOpen}
+          title={item.title}
+        />
       ) : null}
     </li>
   );

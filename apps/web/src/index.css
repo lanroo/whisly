@@ -3534,10 +3534,25 @@ input {
 }
 
 .auth-screen__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   color: var(--accent);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+}
+
+.auth-screen__brand-logo {
+  display: inline-flex;
+}
+
+.auth-screen__brand-logo svg {
+  display: block;
+}
+
+.auth-screen__brand-name {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
 }
 
 .auth-screen__card {
@@ -3553,16 +3568,72 @@ input {
   margin-bottom: 6px;
 }
 
+.auth-screen__illo-img {
+  height: 200px;
+  width: auto;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Par celular + personagem, mesma altura, alinhados pela base. */
+.auth-screen__illo--pair {
+  gap: 18px;
+  align-items: flex-end;
+}
+
+.auth-screen__illo-phone {
+  height: 200px;
+  width: auto;
+}
+
+/* Sombra de contato sob cada ilustração (padrão flat: elipse suave). */
+.auth-screen__illo-item {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.auth-screen__illo-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-screen__illo-item::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  z-index: 0;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(28, 33, 56, 0.32) 0%, rgba(28, 33, 56, 0.16) 45%, rgba(28, 33, 56, 0) 74%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* A base do celular é mais larga que os pés da personagem. */
+.auth-screen__illo-item--phone::after {
+  width: 88%;
+}
+
+.auth-screen__illo-item--char::after {
+  width: 72%;
+}
+
 .auth-screen__title {
   margin: 10px 0 4px;
   color: var(--text);
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.14;
 }
 
 .auth-screen__title--lg {
-  font-size: 34px;
+  font-size: 42px;
 }
 
 .auth-screen__subtitle {

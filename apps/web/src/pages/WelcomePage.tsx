@@ -1,39 +1,34 @@
 import { Link } from 'react-router-dom';
+import welcomeCharacter from '@/assets/welcome-character.png';
+import { AuthBrand } from '../components/AuthBrand';
 
-/** Ilustração flat: celular grande + pessoa — tela de boas-vindas. */
-function WelcomeIllustration() {
+/** Coração flat (unidade ~10x9), posicionado via transform. */
+const HEART_PATH =
+  'M5 9C1.5 6.2 0 4.3 0 2.6 0 1.1 1.1 0 2.5 0 3.4 0 4.2.5 5 1.6 5.8.5 6.6 0 7.5 0 8.9 0 10 1.1 10 2.6 10 4.3 8.5 6.2 5 9Z';
+
+/** Celular flat com a lista de desejos — par da personagem na tela de boas-vindas. */
+function PhoneIllustration() {
   return (
-    <svg aria-hidden="true" fill="none" height="178" viewBox="0 0 260 180" width="258">
-      <ellipse cx="130" cy="164" fill="#ECEFF7" rx="102" ry="10" />
+    <svg aria-hidden="true" className="auth-screen__illo-phone" fill="none" viewBox="0 0 112 200">
+      <rect fill="#FFFFFF" height="192" rx="22" stroke="#242941" strokeWidth="4" width="100" x="6" y="4" />
+      <rect fill="#E2E6F0" height="4" rx="2" width="20" x="46" y="15" />
 
-      {/* Celular */}
-      <rect fill="#FFFFFF" height="132" rx="14" stroke="#242941" strokeWidth="3" width="68" x="72" y="20" />
-      <rect fill="#E2E6F0" height="6" rx="3" width="36" x="82" y="40" />
-      <rect fill="#E2E6F0" height="6" rx="3" width="26" x="82" y="52" />
-      <circle cx="106" cy="86" fill="#ECEFF7" r="13" />
-      <path d="M100 86l4 4 8-8" stroke="#242941" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
-      <rect fill="#E2E6F0" height="6" rx="3" width="32" x="82" y="110" />
-      <rect fill="#C5CCDF" height="4" rx="2" width="16" x="98" y="140" />
+      <g fill="#F0A8C4" transform="translate(46 30) scale(2)">
+        <path d={HEART_PATH} />
+      </g>
 
-      {/* Pessoa */}
-      <circle cx="180" cy="64" fill="#E8B48F" r="10" />
-      <path d="M170 62a10 10 0 0 1 20 0c-3-4-6-5.5-10-5.5s-7 1.5-10 5.5z" fill="#1B1F33" />
-      <rect fill="#2F3551" height="36" rx="9" width="26" x="167" y="76" />
-      <rect fill="#2F3551" height="7" rx="3.5" width="22" x="148" y="82" />
-      <rect fill="#1B1F33" height="38" rx="3.5" width="7" x="170" y="112" />
-      <rect fill="#1B1F33" height="38" rx="3.5" width="7" x="182" y="112" />
-      <rect fill="#242941" height="5" rx="2.5" width="12" x="166" y="150" />
-      <rect fill="#242941" height="5" rx="2.5" width="12" x="180" y="150" />
+      <circle cx="30" cy="74" fill="#ECEFF7" r="9" />
+      <path d="M26 74l3 3 5-5.5" stroke="#242941" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" />
+      <rect fill="#E2E6F0" height="7" rx="3.5" width="42" x="44" y="70" />
 
-      {/* Faíscas */}
-      <path d="M36 48h10M41 43v10" stroke="#C5CCDF" strokeLinecap="round" strokeWidth="2.5" />
-      <path d="M218 34h8M222 30v8" stroke="#C5CCDF" strokeLinecap="round" strokeWidth="2.2" />
-      <circle cx="226" cy="96" r="4" fill="#E2E6F0" />
-      <circle cx="44" cy="104" r="3.5" fill="#C5CCDF" />
-      <path
-        d="M214 132c-2.6-2-4.4-3.5-4.4-5.4 0-1.3 1-2.3 2.3-2.3.8 0 1.6.4 2.1 1.2.5-.8 1.3-1.2 2.1-1.2 1.3 0 2.3 1 2.3 2.3 0 1.9-1.8 3.4-4.4 5.4z"
-        fill="#F0A8C4"
-      />
+      <circle cx="30" cy="104" fill="#ECEFF7" r="9" />
+      <rect fill="#C5CCDF" height="7" rx="3.5" width="32" x="44" y="100" />
+
+      <circle cx="30" cy="134" fill="#ECEFF7" r="9" />
+      <rect fill="#E2E6F0" height="7" rx="3.5" width="42" x="44" y="130" />
+
+      <circle cx="30" cy="164" fill="#ECEFF7" r="9" />
+      <rect fill="#C5CCDF" height="7" rx="3.5" width="28" x="44" y="160" />
     </svg>
   );
 }
@@ -50,9 +45,16 @@ export function WelcomePage() {
         <i>+</i>
       </div>
 
+      <AuthBrand />
+
       <section className="auth-screen__card">
-        <div className="auth-screen__illo">
-          <WelcomeIllustration />
+        <div className="auth-screen__illo auth-screen__illo--pair">
+          <div className="auth-screen__illo-item auth-screen__illo-item--phone">
+            <PhoneIllustration />
+          </div>
+          <div className="auth-screen__illo-item auth-screen__illo-item--char">
+            <img alt="" className="auth-screen__illo-img" src={welcomeCharacter} />
+          </div>
         </div>
 
         <h1 className="auth-screen__title auth-screen__title--lg">Olá!</h1>

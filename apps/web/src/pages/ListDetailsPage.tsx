@@ -88,9 +88,10 @@ export function ListDetailsPage() {
   const [statusItem, setStatusItem] = useState<ListItem | null>(null);
   const [editingStatus, setEditingStatus] = useState<ItemStatus>('desired');
 
-  // Busca dentro da lista
+  // Busca e filtro de status dentro da lista
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ItemStatus | 'all'>('all');
 
   // Compartilhar
   const [shareOpen, setShareOpen] = useState(false);
@@ -394,13 +395,21 @@ export function ListDetailsPage() {
   const collabList = collaborators ?? [];
 
   const filteredItems = useMemo(() => {
+    let out = list_items;
+    if (statusFilter !== 'all') out = out.filter((item) => item.status === statusFilter);
     const term = search.trim().toLowerCase();
-    if (!term) return list_items;
-    return list_items.filter(
-      (item) =>
-        item.title.toLowerCase().includes(term) || (item.store ?? '').toLowerCase().includes(term),
-    );
-  }, [list_items, search]);
+    if (term) {
+      out = out.filter(
+        (item) =>
+          item.title.toLowerCase().includes(term) ||
+          (item.store ?? '').toLowerCase().includes(term),
+      );
+    }
+    return out;
+  }, [list_items, search, statusFilter]);
+
+  const privacyLabel = PRIVACY_CHOICES.find((choice) => choice.value === list?.privacy)?.title ?? '';
+  const itemCount = list_items.length;
 
   return (
     <AppShell className="wishly-list-shell" showFab={false}>
@@ -430,98 +439,101 @@ export function ListDetailsPage() {
           ) : null}
         </div>
 
-        <section className="list-detail-header">
-          {isOwner ? (
-          <div className="list-detail-header__row">
-            <div aria-label="Membros da lista" className="list-detail-header__members">
-              {isOwner && !collabList.some((c) => c.userId === user?.id) ? (
-                <span className="list-detail-header__avatar" title="Você · Dono">
-                  <MyAvatar size="sm" />
-                </span>
-              ) : null}
-              {collabList.slice(0, 5).map((c) => (
-                <span
-                  className="list-detail-header__avatar"
-                  key={c.userId}
-                  title={c.role === 'owner' ? `${c.name} · Dono` : c.name}
-                >
-                  <Avatar name={c.name} size="sm" src={c.avatarUrl ?? undefined} />
-                </span>
-              ))}
-              {collabList.length > 5 ? (
-                <span className="list-detail-header__avatar list-detail-header__more">
-                  +{collabList.length - 5}
-                </span>
-              ) : null}
-            </div>
-
+        <div className="list-detail-meta">
+          <Link
+            className="list-detail-meta__owner"
+            to={isOwner ? '/profile' : `/u/${list?.ownerId ?? ''}`}
+          >
             {isOwner ? (
-              <div className="list-detail-header__tools">
+              <MyAvatar size="md" />
+            ) : (
+              <Avatar name={list?.ownerName} size="md" src={list?.ownerAvatar ?? undefined} />
+            )}
+            <div className="list-detail-meta__info">
+              <strong>{list?.ownerName ?? 'Lista'}</strong>
+              <span>
+                {privacyLabel ? `${privacyLabel} • ` : ''}
+                {itemCount} {itemCount === 1 ? 'item' : 'itens'}
+              </span>
+            </div>
+          </Link>
+
+          {isOwner ? (
+            <div className="list-detail-meta__actions">
+              <button
+                aria-label="Compartilhar"
+                className="list-detail-meta__icon"
+                onClick={() => setShareOpen(true)}
+                type="button"
+              >
+                <MaterialIcon name="ios_share" />
+              </button>
+              <div className="list-detail-menu" ref={menuRef}>
                 <button
-                  className="list-detail-header__share"
-                  onClick={() => setShareOpen(true)}
+                  aria-haspopup="menu"
+                  aria-label="Configurações da lista"
+                  className="list-detail-meta__icon"
+                  onClick={() => setMenuOpen((open) => !open)}
                   type="button"
                 >
-                  <MaterialIcon name="person_add" />
-                  Compartilhar
+                  <MaterialIcon name="settings" />
                 </button>
-                <div className="list-detail-menu" ref={menuRef}>
-                  <button
-                    aria-haspopup="menu"
-                    aria-label="Opções da lista"
-                    className="list-detail-menu__trigger"
-                    onClick={() => setMenuOpen((open) => !open)}
-                    type="button"
-                  >
-                    <MaterialIcon name="more_vert" />
-                  </button>
-                  {menuOpen ? (
-                    <div className="list-detail-menu__dropdown" role="menu">
-                      <button
-                        className="list-detail-menu__item"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          openEdit();
-                        }}
-                        role="menuitem"
-                        type="button"
-                      >
-                        <MaterialIcon name="edit" />
-                        Editar lista
-                      </button>
-                      <button
-                        className="list-detail-menu__item list-detail-menu__item--danger"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setConfirmDelete(true);
-                        }}
-                        role="menuitem"
-                        type="button"
-                      >
-                        <MaterialIcon name="delete" />
-                        Excluir lista
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                {menuOpen ? (
+                  <div className="list-detail-menu__dropdown" role="menu">
+                    <button
+                      className="list-detail-menu__item"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        openEdit();
+                      }}
+                      role="menuitem"
+                      type="button"
+                    >
+                      <MaterialIcon name="edit" />
+                      Editar lista
+                    </button>
+                    <button
+                      className="list-detail-menu__item list-detail-menu__item--danger"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setConfirmDelete(true);
+                      }}
+                      role="menuitem"
+                      type="button"
+                    >
+                      <MaterialIcon name="delete" />
+                      Excluir lista
+                    </button>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-          ) : (
-            <Link className="list-detail-owner" to={`/u/${list?.ownerId ?? ''}`}>
-              <Avatar name={list?.ownerName} size="md" src={list?.ownerAvatar ?? undefined} />
-              <div className="list-detail-owner__info">
-                <strong>Lista de {list?.ownerName ?? 'alguém'}</strong>
-                {list?.ownerHandle ? <span>@{list.ownerHandle}</span> : null}
-              </div>
-              <MaterialIcon className="list-detail-owner__chevron" name="chevron_right" />
-            </Link>
-          )}
-
-          {list?.description ? (
-            <p className="list-detail-header__desc">{list.description}</p>
+            </div>
           ) : null}
-        </section>
+        </div>
+
+        {list?.description ? <p className="list-detail-desc-line">{list.description}</p> : null}
+
+        {itemCount > 0 && (list?.showPriority ?? true) ? (
+          <div aria-label="Filtrar por status" className="list-detail-chips">
+            <button
+              className={`list-detail-chip ${statusFilter === 'all' ? 'is-active' : ''}`.trim()}
+              onClick={() => setStatusFilter('all')}
+              type="button"
+            >
+              Tudo
+            </button>
+            {STATUS_OPTIONS.map((opt) => (
+              <button
+                className={`list-detail-chip ${statusFilter === opt.value ? 'is-active' : ''}`.trim()}
+                key={opt.value}
+                onClick={() => setStatusFilter(opt.value)}
+                type="button"
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         {searchOpen ? (
           <label className="search-box list-item-search">
@@ -570,9 +582,9 @@ export function ListDetailsPage() {
         ) : filteredItems.length === 0 ? (
           <p className="explore-empty-hint">Nenhum produto encontrado para "{search}".</p>
         ) : (
-          <ul className="item-list">
+          <ul className="item-grid">
             {filteredItems.map((item) => (
-              <ItemRow
+              <ItemGridCard
                 canReserve={!isOwner && item.addedBy !== user?.id}
                 currentUserId={user?.id}
                 item={item}
@@ -894,7 +906,7 @@ export function ListDetailsPage() {
   );
 }
 
-function ItemRow({
+function ItemGridCard({
   item,
   mine,
   onDelete,
@@ -936,79 +948,63 @@ function ItemRow({
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [menuOpen]);
-  const inner = (
-    <>
-      <div className="item-card__media">
-        {item.imageUrl ? (
-          <img alt="" className="item-card__thumb" src={item.imageUrl} />
-        ) : (
-          <div className="item-card__thumb item-card__thumb--empty">
-            <MaterialIcon name="image" />
-          </div>
-        )}
-      </div>
-      <div className="item-card__body">
-        {item.store ? <span className="item-card__store">{item.store}</span> : null}
-        <h3 className="item-card__title">{item.title}</h3>
-        {item.price && showPrices ? (
-          <span className="item-card__price">{item.price}</span>
-        ) : null}
-      </div>
-      {item.url ? <MaterialIcon className="item-card__open" name="open_in_new" /> : null}
-    </>
+
+  const media = item.imageUrl ? (
+    <img alt="" className="item-grid-card__thumb" src={item.imageUrl} />
+  ) : (
+    <div className="item-grid-card__thumb item-grid-card__thumb--empty">
+      <MaterialIcon name="image" />
+    </div>
   );
 
   return (
-    <li className="item-card">
-      {item.url ? (
-        <a className="item-card__link" href={item.url} rel="noreferrer" target="_blank">
-          {inner}
-        </a>
-      ) : (
-        <div className="item-card__link">{inner}</div>
-      )}
-
-      {showPriority ? (
-        mine ? (
-          <button
-            className={`item-card__badge item-card__badge--${item.status}`}
-            onClick={onEditStatus}
-            type="button"
+    <li className="item-grid-card">
+      <div className="item-grid-card__media">
+        {item.url ? (
+          <a
+            aria-label={item.title}
+            className="item-grid-card__media-link"
+            href={item.url}
+            rel="noreferrer"
+            target="_blank"
           >
-            {statusLabel(item.status)}
-          </button>
+            {media}
+          </a>
         ) : (
-          <span className={`item-card__badge item-card__badge--${item.status}`}>
-            {statusLabel(item.status)}
-          </span>
-        )
-      ) : null}
+          media
+        )}
 
-      <div className="item-card__actions">
-        {canReserve ? (
-          <button
-            className={`item-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
-            disabled={reserving || reservedByOther}
-            onClick={onReserve}
-            type="button"
-          >
-            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
-            {reservedByOther ? 'Reservado' : reservedByMe ? 'Você reservou' : 'Reservar'}
-          </button>
+        {showPriority ? (
+          mine ? (
+            <button
+              className={`item-card__badge item-card__badge--${item.status} item-grid-card__badge`}
+              onClick={onEditStatus}
+              type="button"
+            >
+              {statusLabel(item.status)}
+            </button>
+          ) : (
+            <span
+              className={`item-card__badge item-card__badge--${item.status} item-grid-card__badge`}
+            >
+              {statusLabel(item.status)}
+            </span>
+          )
         ) : null}
+
         {mine ? (
-          <div className="item-card__menu" ref={menuRef}>
+          <div className="item-grid-card__menu" ref={menuRef}>
             <button
               aria-haspopup="menu"
               aria-label="Opções do item"
-              className="item-card__menu-trigger"
+              className="item-grid-card__menu-trigger"
               onClick={() => setMenuOpen((open) => !open)}
               type="button"
             >
               <MaterialIcon name="more_vert" />
             </button>
             {menuOpen ? (
-              <div className="list-detail-menu__dropdown item-card__menu-dropdown" role="menu">
+              <div className="list-detail-menu__dropdown item-grid-card__menu-dropdown" role="menu">
                 <button
                   className="list-detail-menu__item"
                   onClick={() => {
@@ -1037,6 +1033,25 @@ function ItemRow({
               </div>
             ) : null}
           </div>
+        ) : null}
+      </div>
+
+      <div className="item-grid-card__body">
+        {item.store ? <span className="item-grid-card__store">{item.store}</span> : null}
+        <h3 className="item-grid-card__title">{item.title}</h3>
+        {item.price && showPrices ? (
+          <span className="item-grid-card__price">{item.price}</span>
+        ) : null}
+        {canReserve ? (
+          <button
+            className={`item-grid-card__reserve ${reservedByMe ? 'is-mine' : ''}`.trim()}
+            disabled={reserving || reservedByOther}
+            onClick={onReserve}
+            type="button"
+          >
+            <MaterialIcon name={reservedByMe ? 'check_circle' : 'redeem'} />
+            {reservedByOther ? 'Reservado' : reservedByMe ? 'Reservado por você' : 'Reservar'}
+          </button>
         ) : null}
       </div>
     </li>

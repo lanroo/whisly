@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
+import { MyAvatar } from '../components/MyAvatar';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { TopBar } from '../components/TopBar';
 import {
@@ -100,12 +101,28 @@ export function ListDetailsPage() {
   const [editNotify, setEditNotify] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  // Menu de opções da lista (3 pontinhos)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const isOwner = Boolean(user) && list?.ownerId === user?.id;
   const myRole = useMemo(
     () => collaborators?.find((c) => c.userId === user?.id)?.role,
     [collaborators, user?.id],
   );
   const canEdit = isOwner || myRole === 'editor' || myRole === 'owner';
+
+  // Fecha o menu ao clicar fora.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
 
   // Captura automática ao colar o link (debounce). Só preenche campos vazios.
   useEffect(() => {
@@ -339,7 +356,87 @@ export function ListDetailsPage() {
       />
 
       <main className="page list-detail-page">
-        {list?.description ? <p className="list-detail-desc">{list.description}</p> : null}
+        <section className="list-detail-header">
+          <div className="list-detail-header__row">
+            <div aria-label="Membros da lista" className="list-detail-header__members">
+              {isOwner && !collabList.some((c) => c.userId === user?.id) ? (
+                <span className="list-detail-header__avatar" title="Você · Dono">
+                  <MyAvatar size="sm" />
+                </span>
+              ) : null}
+              {collabList.slice(0, 5).map((c) => (
+                <span
+                  className="list-detail-header__avatar"
+                  key={c.userId}
+                  title={c.role === 'owner' ? `${c.name} · Dono` : c.name}
+                >
+                  <Avatar name={c.name} size="sm" src={c.avatarUrl ?? undefined} />
+                </span>
+              ))}
+              {collabList.length > 5 ? (
+                <span className="list-detail-header__avatar list-detail-header__more">
+                  +{collabList.length - 5}
+                </span>
+              ) : null}
+            </div>
+
+            {isOwner ? (
+              <div className="list-detail-header__tools">
+                <button
+                  className="list-detail-header__share"
+                  onClick={() => setShareOpen(true)}
+                  type="button"
+                >
+                  <MaterialIcon name="person_add" />
+                  Compartilhar
+                </button>
+                <div className="list-detail-menu" ref={menuRef}>
+                  <button
+                    aria-haspopup="menu"
+                    aria-label="Opções da lista"
+                    className="list-detail-menu__trigger"
+                    onClick={() => setMenuOpen((open) => !open)}
+                    type="button"
+                  >
+                    <MaterialIcon name="more_vert" />
+                  </button>
+                  {menuOpen ? (
+                    <div className="list-detail-menu__dropdown" role="menu">
+                      <button
+                        className="list-detail-menu__item"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          openEdit();
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <MaterialIcon name="edit" />
+                        Editar lista
+                      </button>
+                      <button
+                        className="list-detail-menu__item list-detail-menu__item--danger"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setConfirmDelete(true);
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <MaterialIcon name="delete" />
+                        Excluir lista
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {list?.description ? (
+            <p className="list-detail-header__desc">{list.description}</p>
+          ) : null}
+        </section>
 
         {searchOpen ? (
           <label className="search-box list-item-search">
@@ -352,32 +449,6 @@ export function ListDetailsPage() {
               value={search}
             />
           </label>
-        ) : null}
-
-        {isOwner ? (
-          <div className="list-detail-actions">
-            <Button icon="group_add" onClick={() => setShareOpen(true)} variant="secondary">
-              Compartilhar{collabList.length > 0 ? ` (${collabList.length})` : ''}
-            </Button>
-            <div className="list-detail-actions__icons">
-              <button
-                aria-label="Editar lista"
-                className="list-detail-actions__icon"
-                onClick={openEdit}
-                type="button"
-              >
-                <MaterialIcon name="edit" />
-              </button>
-              <button
-                aria-label="Excluir lista"
-                className="list-detail-actions__icon list-detail-actions__icon--danger"
-                onClick={() => setConfirmDelete(true)}
-                type="button"
-              >
-                <MaterialIcon name="delete" />
-              </button>
-            </div>
-          </div>
         ) : null}
 
         {canEdit ? (

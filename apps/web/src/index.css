@@ -2278,6 +2278,8 @@ input {
   align-items: center;
 }
 
+.explore-topbar__inner > h1,
+.profile-topbar__inner > h1,
 .collaborators-topbar__inner > h1 {
   text-align: center;
   min-width: 0;
@@ -2286,6 +2288,8 @@ input {
   text-overflow: ellipsis;
 }
 
+.explore-topbar__inner > :last-child,
+.profile-topbar__inner > :last-child,
 .collaborators-topbar__inner > :last-child {
   justify-self: end;
 }

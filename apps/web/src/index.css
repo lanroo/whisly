@@ -3534,10 +3534,25 @@ input {
 }
 
 .auth-screen__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   color: var(--accent);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+}
+
+.auth-screen__brand-logo {
+  display: inline-flex;
+}
+
+.auth-screen__brand-logo svg {
+  display: block;
+}
+
+.auth-screen__brand-name {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
 }
 
 .auth-screen__card {

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import welcomeCharacter from '@/assets/welcome-character.png';
+import { AuthBrand } from '../components/AuthBrand';
 
 /** Coração flat (unidade ~10x9), posicionado via transform. */
 const HEART_PATH =
@@ -43,6 +44,8 @@ export function WelcomePage() {
         <i>+</i>
         <i>+</i>
       </div>
+
+      <AuthBrand />
 
       <section className="auth-screen__card">
         <div className="auth-screen__illo auth-screen__illo--pair">

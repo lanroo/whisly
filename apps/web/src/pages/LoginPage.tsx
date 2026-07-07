@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { AuthBrand } from '../components/AuthBrand';
 import { PasswordField } from '../components/PasswordField';
 import { useAuth } from '../shared/auth';
 import { useToast } from '../shared/ui';
@@ -85,7 +86,7 @@ export function LoginPage() {
         <i>+</i>
       </div>
 
-      <header className="auth-screen__brand">Wishly</header>
+      <AuthBrand />
 
       <section className="auth-screen__card">
         <div className="auth-screen__illo">

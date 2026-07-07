@@ -1158,7 +1158,6 @@ function ItemListRow({
           </span>
         ) : null}
       </div>
-      {item.url ? <MaterialIcon className="item-card__open" name="open_in_new" /> : null}
     </>
   );
 

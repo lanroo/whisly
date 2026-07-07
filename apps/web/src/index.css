@@ -4418,32 +4418,36 @@ input {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.item-card:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 8px 24px rgba(36, 41, 65, 0.1);
 }
 
 .item-card__link {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 13px;
   min-width: 0;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--line);
-  background: var(--surface-strong);
-  box-shadow: var(--shadow-1);
-  transition: border-color 0.2s ease;
-}
-
-a.item-card__link:hover {
-  border-color: var(--accent);
+  color: inherit;
 }
 
 .item-card__media {
   position: relative;
-  flex: 0 0 64px;
-  width: 64px;
-  height: 64px;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
 }
 
 .item-card__thumb {
@@ -4524,7 +4528,11 @@ button.item-card__badge {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.item-card__badges > * {
+  flex: none;
 }
 
 .item-card__status {

@@ -744,7 +744,7 @@ export function ListDetailsPage() {
             <span>Adicionar por @usuário</span>
             <input
               onChange={(e) => setShareHandle(e.target.value)}
-              placeholder="ex: @lanna"
+              placeholder="ex: @usuario"
               type="text"
               value={shareHandle}
             />

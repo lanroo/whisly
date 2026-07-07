@@ -22,7 +22,7 @@ export function ExplorePage() {
   const { user } = useAuth();
   const toast = useToast();
   const { data: lists, isLoading } = usePublicLists();
-  const { data: graph } = useFriendGraph();
+  const { data: graph, isPending: graphPending } = useFriendGraph();
   const { data: unread = 0 } = useUnreadActivityCount();
   const [search, setSearch] = useState('');
   const { data: searchResults, isLoading: searching } = useSearchPeople(search);
@@ -235,6 +235,28 @@ export function ExplorePage() {
               </div>
             )}
           </section>
+        ) : graphPending ? (
+          <>
+            <section className="explore-section">
+              <div className="section-heading explore-section__heading">
+                <h2>Amigos</h2>
+              </div>
+              <div className="explore-friends-row">
+                <Skeleton height={116} width="88px" />
+                <Skeleton height={116} width="88px" />
+                <Skeleton height={116} width="88px" />
+              </div>
+            </section>
+            <section className="explore-section">
+              <div className="section-heading explore-section__heading">
+                <h2>Listas Públicas</h2>
+              </div>
+              <div className="explore-lists-grid">
+                <Skeleton height={220} width="100%" />
+                <Skeleton height={220} width="100%" />
+              </div>
+            </section>
+          </>
         ) : hasFriends ? (
           <>
             <section className="explore-section">

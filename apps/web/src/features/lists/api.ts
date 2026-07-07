@@ -95,6 +95,7 @@ export interface UpdateListInput {
   showPrices?: boolean;
   showPriority?: boolean;
   notifyNewItems?: boolean;
+  coverImage?: string | null;
 }
 
 async function updateList(listId: string, input: UpdateListInput): Promise<void> {
@@ -106,6 +107,7 @@ async function updateList(listId: string, input: UpdateListInput): Promise<void>
   if (input.showPrices !== undefined) patch.show_prices = input.showPrices;
   if (input.showPriority !== undefined) patch.show_priority = input.showPriority;
   if (input.notifyNewItems !== undefined) patch.notify_new_items = input.notifyNewItems;
+  if (input.coverImage !== undefined) patch.cover_image = input.coverImage;
 
   const { error } = await supabase.from('lists').update(patch).eq('id', listId);
   if (error) throw error;
@@ -213,6 +215,7 @@ export interface ListSummary {
   showPrices: boolean;
   showPriority: boolean;
   notifyNewItems: boolean;
+  image: string;
 }
 
 function mapItem(row: ItemRowWithReservation): ListItem {
@@ -234,7 +237,9 @@ async function fetchList(listId: string): Promise<ListSummary | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from('lists')
-    .select('id, title, description, privacy, owner_id, show_prices, show_priority, notify_new_items')
+    .select(
+      'id, title, description, privacy, owner_id, show_prices, show_priority, notify_new_items, cover_image',
+    )
     .eq('id', listId)
     .maybeSingle();
 
@@ -249,6 +254,7 @@ async function fetchList(listId: string): Promise<ListSummary | null> {
     showPrices: data.show_prices,
     showPriority: data.show_priority,
     notifyNewItems: data.notify_new_items,
+    image: data.cover_image ?? DEFAULT_COVER,
   };
 }
 
@@ -364,6 +370,39 @@ export function useUpdateItemStatus(listId: string) {
   return useMutation({
     mutationFn: ({ itemId, status }: { itemId: string; status: ItemStatus }) =>
       updateItemStatus(itemId, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
+  });
+}
+
+export interface UpdateItemInput {
+  title?: string;
+  url?: string | null;
+  price?: string | null;
+  imageUrl?: string | null;
+  store?: string | null;
+  status?: ItemStatus;
+}
+
+async function updateItem(itemId: string, input: UpdateItemInput): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+  const patch: Database['public']['Tables']['list_items']['Update'] = {};
+  if (input.title !== undefined) patch.title = input.title.trim();
+  if (input.url !== undefined) patch.url = input.url?.trim() || null;
+  if (input.price !== undefined) patch.price = input.price?.trim() || null;
+  if (input.imageUrl !== undefined) patch.image_url = input.imageUrl?.trim() || null;
+  if (input.store !== undefined) patch.brand = input.store?.trim() || null;
+  if (input.status !== undefined) patch.status = input.status;
+
+  const { error } = await supabase.from('list_items').update(patch).eq('id', itemId);
+  if (error) throw error;
+}
+
+/** Edita um item da lista (título, preço, link, imagem, status). */
+export function useUpdateItem(listId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, input }: { itemId: string; input: UpdateItemInput }) =>
+      updateItem(itemId, input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['list-items', listId] }),
   });
 }

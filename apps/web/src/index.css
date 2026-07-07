@@ -3554,11 +3554,22 @@ input {
 }
 
 .auth-screen__illo-img {
-  height: 220px;
+  height: 200px;
   width: auto;
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* Par celular + personagem, mesma altura, alinhados pela base. */
+.auth-screen__illo--pair {
+  gap: 18px;
+  align-items: flex-end;
+}
+
+.auth-screen__illo-phone {
+  height: 200px;
+  width: auto;
 }
 
 .auth-screen__title {

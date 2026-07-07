@@ -4146,6 +4146,31 @@ input {
   margin-top: 0;
 }
 
+/* Tablet/desktop: "Últimas listas" lado a lado (grid), cards menores. */
+@media (min-width: 768px) {
+  .wishly-lists__stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 20px;
+    align-items: start;
+  }
+
+  /* Cada card ocupa uma célula (anula o span do grid antigo). */
+  .wishly-lists__stack .wishly-list-card--hero {
+    grid-column: auto;
+  }
+
+  .wishly-lists__stack .wishly-list-card__add {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wishly-lists__stack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .wishly-lists__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

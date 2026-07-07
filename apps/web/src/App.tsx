@@ -10,9 +10,11 @@ import { ListsPage } from './pages/ListsPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RegisterPage } from './pages/RegisterPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { StyleguidePage } from './pages/StyleguidePage';
 import { UserProfilePage } from './pages/UserProfilePage';
+import { WelcomePage } from './pages/WelcomePage';
 
 function App() {
   return (
@@ -20,8 +22,10 @@ function App() {
       <Route path="/" element={<Navigate replace to="/home" />} />
 
       {/* Públicas */}
+      <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/dev/styleguide" element={<StyleguidePage />} />
 
       {/* Protegidas (exigem login) */}

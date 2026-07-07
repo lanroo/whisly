@@ -1,16 +1,38 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { AuthSocialButtons } from '../components/AuthSocialButtons';
-import { MaterialIcon } from '../components/MaterialIcon';
 import { PasswordField } from '../components/PasswordField';
 import { useAuth } from '../shared/auth';
 import { useToast } from '../shared/ui';
 
+/** Ilustração flat: celular com coração — tela de login. */
+function LoginIllustration() {
+  return (
+    <svg aria-hidden="true" fill="none" height="96" viewBox="0 0 180 110" width="158">
+      <circle cx="90" cy="55" r="44" fill="#ECEFF7" />
+      <rect fill="#2F3551" height="74" rx="9" width="36" x="72" y="18" />
+      <rect fill="#FFFFFF" height="54" rx="5" width="28" x="76" y="26" />
+      <path
+        d="M90 61c-6-4.5-10-8-10-12.2 0-3 2.3-5.3 5.2-5.3 1.9 0 3.7 1 4.8 2.7 1.1-1.7 2.9-2.7 4.8-2.7 2.9 0 5.2 2.3 5.2 5.3 0 4.2-4 7.7-10 12.2z"
+        fill="#2F3551"
+      />
+      <rect fill="#C5CCDF" height="3" rx="1.5" width="12" x="84" y="84" />
+      <path d="M30 26h10M35 21v10" stroke="#C5CCDF" strokeLinecap="round" strokeWidth="2.5" />
+      <path d="M142 68h8M146 64v8" stroke="#C5CCDF" strokeLinecap="round" strokeWidth="2.2" />
+      <circle cx="140" cy="26" r="3.5" fill="#C5CCDF" />
+      <circle cx="42" cy="80" r="4" fill="#E2E6F0" />
+      <path
+        d="M128 44c-2.6-2-4.4-3.5-4.4-5.4 0-1.3 1-2.3 2.3-2.3.8 0 1.6.4 2.1 1.2.5-.8 1.3-1.2 2.1-1.2 1.3 0 2.3 1 2.3 2.3 0 1.9-1.8 3.4-4.4 5.4z"
+        fill="#F0A8C4"
+      />
+    </svg>
+  );
+}
+
 export function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { signInWithPassword, signInWithOAuth, resetPassword } = useAuth();
+  const { signInWithPassword, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -27,13 +49,6 @@ export function LoginPage() {
       return;
     }
     navigate('/home');
-  }
-
-  async function handleOAuth(provider: 'google' | 'apple') {
-    const { error } = await signInWithOAuth(provider);
-    if (error) {
-      toast.show({ variant: 'error', title: 'Login social', description: error });
-    }
   }
 
   async function handleForgotPassword() {
@@ -60,23 +75,30 @@ export function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <div className="auth-brand">
-          <span className="auth-brand__logo">W</span>
-          <span className="auth-brand__name">Wishly</span>
+    <main className="auth-screen">
+      <div aria-hidden="true" className="auth-screen__deco">
+        <span />
+        <span />
+        <span />
+        <span />
+        <i>+</i>
+        <i>+</i>
+      </div>
+
+      <header className="auth-screen__brand">Wishly</header>
+
+      <section className="auth-screen__card">
+        <div className="auth-screen__illo">
+          <LoginIllustration />
         </div>
 
-        <div className="auth-card__header">
-          <h1>Bem-vindo de volta</h1>
-          <p className="auth-card__subtitle">Entre para continuar organizando seus desejos.</p>
-        </div>
+        <h1 className="auth-screen__title">Bem-vindo de volta!</h1>
+        <p className="auth-screen__subtitle">Entre para continuar organizando seus desejos.</p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-screen__form" onSubmit={handleSubmit}>
           <label className="field">
             <span>E-mail ou usuário</span>
             <div className="field__control">
-              <MaterialIcon className="field__icon" name="person" />
               <input
                 autoCapitalize="none"
                 autoComplete="username"
@@ -90,26 +112,20 @@ export function LoginPage() {
             </div>
           </label>
 
-          <PasswordField
-            autoComplete="current-password"
-            label="Senha"
-            name="password"
-            meta={
-              <button className="link-button" onClick={handleForgotPassword} type="button">
-                Esqueceu a senha?
-              </button>
-            }
-          />
+          <PasswordField autoComplete="current-password" label="Senha" name="password" />
+
+          <div className="auth-screen__row">
+            <button className="auth-screen__forgot" onClick={handleForgotPassword} type="button">
+              Esqueceu a senha?
+            </button>
+          </div>
 
           <button className="primary-button primary-button--full" disabled={submitting} type="submit">
-            <span>{submitting ? 'Entrando...' : 'Entrar'}</span>
-            <MaterialIcon name="arrow_forward" />
+            {submitting ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        <AuthSocialButtons label="Ou continue com" onSelect={handleOAuth} />
-
-        <p className="auth-card__footer">
+        <p className="auth-screen__footer">
           Não tem uma conta? <Link to="/register">Cadastre-se</Link>
         </p>
       </section>

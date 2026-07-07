@@ -72,22 +72,7 @@ input {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
-.auth-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px 16px;
-}
-
-.auth-card {
-  width: min(100%, 460px);
-  padding: 32px 24px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(199, 197, 206, 0.32);
-  box-shadow: 0 16px 60px rgba(36, 41, 65, 0.09);
-  animation: page-enter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
+/* Estilos da tela de auth ficam na seção "Auth (login / registro)" no fim do arquivo. */
 
 .eyebrow {
   margin: 0 0 10px;
@@ -351,8 +336,7 @@ input {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page,
-  .auth-card {
+  .page {
     animation: none;
   }
 }
@@ -3077,10 +3061,6 @@ input {
     top: 84px;
   }
 
-  .auth-card {
-    padding: 40px 32px;
-  }
-
   .page {
     padding: 32px 40px 56px;
   }
@@ -3472,30 +3452,273 @@ input {
    Auth (login / registro) + estado "seguindo" no Explorar
    ============================================================ */
 
-.auth-brand {
-  display: inline-flex;
+/* Estilo flat claro: fundo do app, ilustrações navy, pills e deco sutil. */
+
+.auth-screen {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  font-weight: 800;
-  color: var(--text);
+  gap: 18px;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.auth-brand__logo {
-  width: 36px;
-  height: 36px;
+/* Círculos, pontos e "+" flutuantes — bem discretos sobre o fundo claro. */
+.auth-screen__deco {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.auth-screen__deco span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+}
+
+.auth-screen__deco span:nth-child(1) {
+  width: 34px;
+  height: 34px;
+  top: 66px;
+  right: 34px;
+  border: 2px solid rgba(36, 41, 65, 0.14);
+}
+
+.auth-screen__deco span:nth-child(2) {
+  width: 10px;
+  height: 10px;
+  top: 148px;
+  left: 30px;
+  background: rgba(36, 41, 65, 0.16);
+}
+
+.auth-screen__deco span:nth-child(3) {
+  width: 18px;
+  height: 18px;
+  bottom: 170px;
+  right: 58px;
+  border: 2px solid rgba(36, 41, 65, 0.12);
+}
+
+.auth-screen__deco span:nth-child(4) {
+  width: 7px;
+  height: 7px;
+  bottom: 120px;
+  left: 56px;
+  background: rgba(36, 41, 65, 0.2);
+}
+
+.auth-screen__deco i {
+  position: absolute;
+  font-style: normal;
+  color: rgba(36, 41, 65, 0.3);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.auth-screen__deco i:nth-of-type(1) {
+  top: 210px;
+  left: 38px;
+}
+
+.auth-screen__deco i:nth-of-type(2) {
+  bottom: 250px;
+  right: 40px;
+  font-size: 15px;
+}
+
+.auth-screen__brand {
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.auth-screen__card {
+  width: min(100%, 360px);
+  margin: auto;
+  text-align: center;
+  animation: auth-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-screen__illo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.auth-screen__title {
+  margin: 10px 0 4px;
+  color: var(--text);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth-screen__title--lg {
+  font-size: 34px;
+}
+
+.auth-screen__subtitle {
+  margin: 0 auto 24px;
+  max-width: 32ch;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.auth-screen__form {
   display: grid;
-  place-items: center;
-  border-radius: 11px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 18px;
+  gap: 14px;
+  text-align: left;
+}
+
+.auth-screen .field {
+  gap: 6px;
+}
+
+.auth-screen .field > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.auth-screen .field__control {
+  border-radius: 12px;
+  background: var(--surface-strong);
+  border: 1.5px solid rgba(119, 118, 126, 0.24);
+}
+
+.auth-screen .field__control:focus-within {
+  border-color: var(--accent);
+  background: var(--surface-strong);
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.auth-screen .field__icon {
+  display: none;
+}
+
+.auth-screen .field input {
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.auth-screen .field:has(.field__toggle) input {
+  padding-right: 50px;
+}
+
+.auth-screen .field input::placeholder {
+  color: rgba(93, 94, 99, 0.55);
+}
+
+.auth-screen .field__hint {
+  color: var(--muted);
+}
+
+.auth-screen__row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+}
+
+.auth-screen__forgot {
+  padding: 4px 2px;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.auth-screen__forgot:hover {
+  opacity: 0.75;
+}
+
+.auth-screen .primary-button {
+  min-height: 50px;
+  margin-top: 6px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.auth-screen .primary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.auth-screen .primary-button:disabled {
+  opacity: 0.6;
+}
+
+/* Ações da tela de boas-vindas: pill sólida + pill contornada. */
+.auth-screen__actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.auth-screen__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(36, 41, 65, 0.55);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.auth-screen__secondary:hover {
+  background: var(--accent-soft);
+}
+
+.auth-screen__secondary:active {
+  transform: scale(0.97);
+}
+
+.auth-screen__footer {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.auth-screen__footer a {
+  color: var(--accent);
   font-weight: 700;
 }
 
-.auth-brand__name {
-  font-size: 18px;
-  letter-spacing: 0.04em;
+@keyframes auth-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 768px) {
+  .auth-screen__card {
+    width: min(100%, 400px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-screen__card {
+    animation: none;
+  }
 }
 
 .field__toggle {

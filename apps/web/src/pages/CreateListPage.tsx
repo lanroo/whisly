@@ -56,7 +56,7 @@ export function CreateListPage() {
     try {
       const listId = await createList.mutateAsync({ title, privacy, coverImage, description });
       toast.show({ variant: 'success', title: 'Lista criada' });
-      navigate(`/lists/${listId}`);
+      navigate(`/lists/${listId}`, { replace: true, state: { addItemOnOpen: true } });
     } catch (error) {
       toast.show({
         variant: 'error',
@@ -68,59 +68,24 @@ export function CreateListPage() {
 
   return (
     <div className="create-flow-screen">
-      <CreateFlowHeader backTo="/home" title="Criar Nova Lista" />
+      <CreateFlowHeader backTo="/home" title="Nova lista" />
 
       <main className="create-flow-page">
         <form className="create-list-form-v2" id="create-list-form" onSubmit={handleSubmit}>
-          <section className="create-list-cover">
-            <button
-              className="create-list-cover__button"
-              onClick={() => fileInputRef.current?.click()}
-              type="button"
-            >
-              <div className={`create-list-cover__art ${coverImage ? 'has-image' : ''}`.trim()}>
-                <img alt="Prévia da capa da lista" src={coverImage ?? DEFAULT_COVER_ART} />
-                {!coverImage ? (
-                  <div className="create-list-cover__overlay">
-                    <div className="create-list-cover__phone">
-                      <div className="create-list-cover__phone-notch" />
-                      <div className="create-list-cover__phone-lines">
-                        <span />
-                        <span />
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-              <span className="create-list-cover__edit">
-                <MaterialIcon name={uploadingCover ? 'hourglass_top' : 'edit'} />
-              </span>
-            </button>
-            <input
-              accept="image/*"
-              hidden
-              onChange={handleCoverChange}
-              ref={fileInputRef}
-              type="file"
-            />
-            <p>
-              {uploadingCover
-                ? 'Enviando...'
-                : coverImage
-                  ? 'Trocar imagem de capa'
-                  : 'Escolher imagem de capa'}
-            </p>
-          </section>
+          <div className="create-list-intro">
+            <span className="create-list-intro__step">01 / DETALHES DA LISTA</span>
+            <h2>O que você quer reunir?</h2>
+            <p>Comece com um nome. Você pode ajustar os detalhes quando quiser.</p>
+          </div>
 
           <label className="create-list-input">
-            <span>Nome da Lista</span>
+            <span>Nome da lista</span>
             <div className="create-list-input__control">
               <input
+                maxLength={80}
                 onChange={(event) => setListName(event.target.value)}
-                placeholder="Ex: Viagem de Férias ✈️"
+                placeholder="Ex.: Minha viagem de férias"
+                required
                 type="text"
                 value={listName}
               />
@@ -132,15 +97,52 @@ export function CreateListPage() {
             <div className="create-list-input__control create-list-input__control--multiline">
               <textarea
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Do que é essa lista? Ex: presentes de aniversário"
+                placeholder="Conte um pouco sobre esta lista"
                 rows={3}
                 value={description}
               />
             </div>
           </label>
 
+          <section className="create-list-cover">
+            <div className="create-list-section-heading">
+              <h2>Imagem de capa</h2>
+              <span>Opcional</span>
+            </div>
+            <button
+              className="create-list-cover__button"
+              disabled={uploadingCover}
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+            >
+              <span className="create-list-cover__preview">
+                <img alt="" src={coverImage ?? DEFAULT_COVER_ART} />
+                {!coverImage ? <MaterialIcon name="photo_camera" /> : null}
+              </span>
+              <span className="create-list-cover__copy">
+                <strong>{coverImage ? 'Capa selecionada' : 'Escolha uma capa'}</strong>
+                <small>
+                  {uploadingCover ? 'Enviando imagem...' : 'Uma foto para dar a cara da sua lista'}
+                </small>
+              </span>
+              <MaterialIcon
+                className="create-list-cover__action"
+                name={coverImage ? 'edit' : 'add'}
+              />
+            </button>
+            <input
+              accept="image/*"
+              hidden
+              onChange={handleCoverChange}
+              ref={fileInputRef}
+              type="file"
+            />
+          </section>
+
           <section className="create-list-privacy">
-            <h2>Privacidade</h2>
+            <div className="create-list-section-heading">
+              <h2>Quem pode ver?</h2>
+            </div>
             <div className="create-list-privacy__card">
               {PRIVACY_CHOICES.map((option) => (
                 <CreateListPrivacyOption
@@ -156,7 +158,6 @@ export function CreateListPage() {
               ))}
             </div>
           </section>
-
         </form>
       </main>
 
@@ -164,11 +165,11 @@ export function CreateListPage() {
         <div className="create-flow-footer__inner">
           <button
             className="primary-button primary-button--full create-flow-submit"
-            disabled={createList.isPending}
+            disabled={createList.isPending || uploadingCover}
             form="create-list-form"
             type="submit"
           >
-            {createList.isPending ? 'Criando...' : 'Criar Lista'}
+            {createList.isPending ? 'Criando lista...' : 'Criar e adicionar produtos'}
           </button>
         </div>
       </div>

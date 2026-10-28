@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { CreateListPrivacyOption } from '../components/CreateListPrivacyOption';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -50,6 +50,7 @@ function statusLabel(status: ItemStatus): string {
 
 export function ListDetailsPage() {
   const { listId } = useParams<{ listId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const toast = useToast();
@@ -73,7 +74,14 @@ export function ListDetailsPage() {
 
   // Form de adicionar / editar item (modal)
   const [editingItem, setEditingItem] = useState<ListItem | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(
+    () => (location.state as { addItemOnOpen?: boolean } | null)?.addItemOnOpen === true,
+  );
+  useEffect(() => {
+    if ((location.state as { addItemOnOpen?: boolean } | null)?.addItemOnOpen) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate]);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -403,7 +411,8 @@ export function ListDetailsPage() {
     return out;
   }, [list_items, search, statusFilter]);
 
-  const privacyLabel = PRIVACY_CHOICES.find((choice) => choice.value === list?.privacy)?.title ?? '';
+  const privacyLabel =
+    PRIVACY_CHOICES.find((choice) => choice.value === list?.privacy)?.title ?? '';
   const itemCount = list_items.length;
 
   return (
@@ -589,7 +598,11 @@ export function ListDetailsPage() {
         )}
       </main>
 
-      <Modal onClose={closeForm} open={addOpen} title={editingItem ? 'Editar item' : 'Adicionar item'}>
+      <Modal
+        onClose={closeForm}
+        open={addOpen}
+        title={editingItem ? 'Editar item' : 'Adicionar item'}
+      >
         <form className="additem-form" onSubmit={handleAdd}>
           <div className="additem-link">
             <div className="ui-field__control ui-field__control--with-icon">
@@ -609,7 +622,9 @@ export function ListDetailsPage() {
                 Buscando dados do produto...
               </p>
             ) : (
-              <p className="additem-hint">Nome, marca, preço e foto vêm automáticos ao colar o link.</p>
+              <p className="additem-hint">
+                Nome, marca, preço e foto vêm automáticos ao colar o link.
+              </p>
             )}
           </div>
 

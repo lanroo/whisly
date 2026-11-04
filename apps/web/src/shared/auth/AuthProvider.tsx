@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type { Session, User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { AuthContext, type AuthResult, type OAuthProvider, type SignUpParams } from './auth-context';
+import { emailRedirectUrl } from './email-redirect';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -54,7 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, handle } },
+        options: {
+          data: { name, handle },
+          emailRedirectTo: emailRedirectUrl('/auth/callback'),
+        },
       });
       return {
         error: error?.message ?? null,
@@ -80,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = useCallback(async (email: string): Promise<AuthResult> => {
     if (!supabase) return { error: null };
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: emailRedirectUrl('/reset-password'),
     });
     return { error: error?.message ?? null };
   }, []);

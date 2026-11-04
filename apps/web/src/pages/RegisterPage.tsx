@@ -101,7 +101,7 @@ export function RegisterPage() {
       return;
     }
 
-    toast.show({ variant: 'success', title: 'Conta criada', description: 'Bem-vindo ao Wishly!' });
+    toast.show({ variant: 'success', title: 'Conta criada', description: 'Bem-vindo ao Whisly!' });
     navigate('/home');
   }
 

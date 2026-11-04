@@ -3619,11 +3619,7 @@ input {
   font-size: 15px;
 }
 
-/* ============================================================
-   LOGOMARCA CANÔNICA — selo "W" + wordmark "WISHLY".
-   Fonte única de verdade: componente <Brand />. Serif (Playfair),
-   maiúsculas, mesmo tamanho e espaçamento em todo o app.
-   ============================================================ */
+/* Logomarca canônica: marcador + wordmark Whisly. */
 .brand {
   display: inline-flex;
   align-items: center;
@@ -3640,10 +3636,12 @@ input {
   border-radius: 9px;
   background: var(--accent);
   color: var(--accent-contrast);
-  font-family: var(--font-serif);
-  font-weight: 700;
-  font-size: 19px;
-  line-height: 1;
+}
+
+.brand__mark img {
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
 .brand__name {

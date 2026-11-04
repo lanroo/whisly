@@ -33,7 +33,7 @@ export function ListsPage() {
         brand
         onRight={() => setSearchOpen((open) => !open)}
         rightIcon={searchOpen ? 'close' : 'search'}
-        title="Wishly"
+        title="Whisly"
       />
 
       <main className="page lists-page">

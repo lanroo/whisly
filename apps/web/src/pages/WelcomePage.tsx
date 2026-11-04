@@ -59,7 +59,7 @@ export function WelcomePage() {
 
         <h1 className="auth-screen__title auth-screen__title--lg">Olá!</h1>
         <p className="auth-screen__subtitle">
-          Bem-vindo ao Wishly, onde você guarda e organiza todos os seus desejos.
+          Bem-vindo ao Whisly, onde você guarda e organiza todos os seus desejos.
         </p>
 
         <div className="auth-screen__actions">

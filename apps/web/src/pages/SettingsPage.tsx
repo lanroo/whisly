@@ -170,8 +170,8 @@ export function SettingsPage() {
             />
             <SettingsSelectRow
               icon="info"
-              onClick={() => comingSoon('Sobre o Wishly')}
-              title="Sobre o Wishly"
+              onClick={() => comingSoon('Sobre o Whisly')}
+              title="Sobre o Whisly"
             />
           </div>
         </section>

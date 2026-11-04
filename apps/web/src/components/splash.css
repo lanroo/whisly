@@ -27,13 +27,16 @@
   border-radius: 22px;
   background: linear-gradient(180deg, #2f3551 0%, #242941 100%);
   color: #fff;
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  font-size: 40px;
-  font-weight: 700;
   box-shadow: 0 16px 34px rgba(36, 41, 65, 0.24);
   animation:
     splash-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
     splash-breathe 2s ease-in-out 0.6s infinite;
+}
+
+.splash__mark img {
+  width: 72px;
+  height: 72px;
+  display: block;
 }
 
 .splash__name {

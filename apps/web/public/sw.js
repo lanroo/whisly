@@ -20,8 +20,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Whisly';
   const options = {
     body: data.body || '',
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
+    icon: '/icon-192.png?v=2',
+    badge: '/favicon.svg?v=2',
     data: { url: data.url || '/activity' },
   };
 

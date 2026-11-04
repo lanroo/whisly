@@ -36,7 +36,7 @@ export function StyleguidePage() {
     <main className="styleguide">
       <h1 className="styleguide__title">Design System</h1>
       <p className="styleguide__subtitle">
-        Referência viva dos tokens e componentes do Wishly (rota de desenvolvimento).
+        Referência viva dos tokens e componentes do Whisly (rota de desenvolvimento).
       </p>
 
       <section className="sg-section">

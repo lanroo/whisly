@@ -1,17 +1,16 @@
 /**
- * Logomarca canônica do Wishly: selo "W" + wordmark "WISHLY", ambos na fonte
- * serif (Playfair Display), mesmo tamanho e espaçamento.
+ * Logomarca canônica do Whisly: símbolo de marcador + wordmark "WHISLY".
  *
  * FONTE ÚNICA DE VERDADE da marca — use SEMPRE este componente. Nunca escreva
- * "Wishly"/"WISHLY" solto nem um "W" avulso: o selo e o nome saem daqui.
+ * "Whisly"/"WHISLY" solto: o selo e o nome saem daqui.
  */
 export function Brand({ className = '' }: { className?: string }) {
   return (
     <span className={`brand ${className}`.trim()}>
       <span aria-hidden="true" className="brand__mark">
-        W
+        <img alt="" src="/brand-mark.svg" />
       </span>
-      <span className="brand__name">Wishly</span>
+      <span className="brand__name">Whisly</span>
     </span>
   );
 }

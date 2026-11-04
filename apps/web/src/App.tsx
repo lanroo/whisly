@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RequireAuth } from './app/RequireAuth';
 import { ActivityPage } from './pages/ActivityPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { CollaboratorsPage } from './pages/CollaboratorsPage';
 import { CreateListPage } from './pages/CreateListPage';
 import { ExplorePage } from './pages/ExplorePage';
@@ -25,6 +26,7 @@ function App() {
       <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/dev/styleguide" element={<StyleguidePage />} />
 
